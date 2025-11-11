@@ -1,1 +1,64 @@
-/* You can add global styles to this file, and also import other style files */
+
+// Include theming for Angular Material with `mat.theme()`.
+// This Sass mixin will define CSS variables that are used for styling Angular Material
+// components according to the Material 3 design spec.
+// Learn more about theming and how to use it for your application's
+// custom components at https://material.angular.dev/guide/theming
+@use '@angular/material' as mat;
+
+html {
+  @include mat.theme((
+    color: (
+      primary: mat.$cyan-palette,
+      tertiary: mat.$orange-palette,
+    ),
+    density: 0,
+  ));
+}
+
+body {
+  color-scheme: light;
+  background-color: var(--mat-sys-surface);
+  color: var(--mat-sys-on-surface);
+}
+/* Importa a fonte Inter */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap');
+
+/* Reset e dimensões básicas */
+body, html {
+  margin: 0px !important;
+  padding: 0px !important;
+  width: 100%;
+  height: 100%;
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  background-color: var(--background-color);
+  color: var(--color);
+}
+
+
+* {
+  font-family: 'Inter', sans-serif;
+}
+
+:root {
+  --primary-color: #f7b600;
+  --background-color: #ffffff;
+  --background-color-main: #F2EFE8;
+  --color: #000000;
+  --input-color: #79747E;
+  --border-color: #bcb9be;
+  --size-14: 14px;
+  --size-16: 16px;
+  --size-18: 18px;
+  --size-20: 20px;
+  --size-22: 22px;
+}
+
+.content{
+  width: 100%;
+  height: 100%;
+  // padding: 10px;
+}
+

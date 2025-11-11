@@ -1,0 +1,34 @@
+@if(isLoading){
+  <app-loading></app-loading>
+}
+<div class="content">
+  <div class="content-title">Informe o código enviado para</div>
+  <div class="content-subtitle">{{ email }}</div>
+
+  <form class="content-form" [formGroup]="form" (submit)="$event.preventDefault()">
+
+    <!-- Código de Validação -->
+    <div class="content-input">
+      <div class="input-wrapper" [class.focused]="focused['code'] || form.get('code')?.value">
+        <label>Código de Validação</label>
+        <input #codeInput type="text" formControlName="code" (input)="onCodeInput($event)" (focus)="onFocus('code')" (blur)="onBlur('code')" />
+      </div>
+    </div>
+
+  </form>
+
+  <!-- Botão Avançar -->
+  <div class="content-bottom">
+    <button class="content-button" (click)="validateCode()">
+      <mat-icon>arrow_forward</mat-icon> Avançar
+    </button>
+  </div>
+</div>
+
+<!-- Dialog central -->
+<div class="dialog-overlay" *ngIf="showDialog" (click)="closeDialog()">
+  <div class="dialog" (click)="$event.stopPropagation()">
+    <pre>{{ dialogMessage }}</pre>
+    <button (click)="closeDialog()">Fechar</button>
+  </div>
+</div>

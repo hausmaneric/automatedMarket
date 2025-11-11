@@ -1,6 +1,16 @@
 import { bootstrapApplication } from '@angular/platform-browser';
-import { appConfig } from './app/app.config';
 import { App } from './app/app';
+import { importProvidersFrom } from '@angular/core';
+import { provideRouter } from '@angular/router';
+import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
+import { routes } from './app/app.routes';
+import { HttpClientModule, provideHttpClient, withFetch } from '@angular/common/http';
+import 'zone.js';
 
-bootstrapApplication(App, appConfig)
-  .catch((err) => console.error(err));
+bootstrapApplication(App, {
+  providers: [
+    importProvidersFrom(BrowserAnimationsModule, HttpClientModule),
+    provideRouter(routes),
+    provideHttpClient(withFetch()),
+  ]
+});

@@ -1,0 +1,342 @@
+.content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-height: 100vh;
+  background-color: var(--background-color);
+  padding-top: 28px !important;
+}
+
+.content-title {
+  font-size: var(--size-18);
+  font-weight: 600;
+  margin-bottom: 10px;
+  text-align: center;
+}
+
+.content-image {
+  margin: 6px 0 12px 0;
+  img { width: 80px; height: auto; display:block; }
+}
+
+.content-form { display:flex; flex-direction:column; gap:12px; }
+
+.content-input {
+  .password-label {
+    font-size: var(--size-14);
+    font-weight: 500;
+    margin-bottom: 12px;
+    margin-left: 4px;
+    color: var(--input-color);
+    display: block;
+  }
+
+  .input-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+    width: 300px;
+    flex-direction: row;
+    padding-top: 4px;
+
+    label {
+      position: absolute;
+      left: 4%;
+      top: 15px;
+      font-size: var(--size-14);
+      font-weight: 400;
+      color: var(--input-color);
+      pointer-events: none;
+      transition: transform .12s ease, font-size .12s ease, top .12s ease;
+    }
+
+    &.focused label {
+      transform: translateY(-16px) scale(0.96);
+      top: 6px;
+      left: 4px;
+      font-size: 12px;
+    }
+
+    input {
+      width: 100%;
+      padding: 10px;
+      padding-right: 38px;
+      border: 1px solid var(--input-color);
+      border-radius: 8px;
+      font-size: var(--size-14);
+      outline: none;
+      background: transparent;
+    }
+
+    .icon-btn {
+      position: absolute;
+      right: 6px;
+      background: transparent;
+      border: 0;
+      cursor: pointer;
+      color: var(--input-color);
+    }
+  }
+}
+
+.calendar-popup {
+  position: absolute;
+  top: 48px; left:0;
+  width: 320px;
+  background:#fff;
+  border:1px solid rgba(0,0,0,0.06);
+  border-radius:8px;
+  padding:10px;
+  z-index:1200;
+}
+
+.cal-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; }
+.cal-grid { display:grid; grid-template-columns:repeat(7,1fr); gap:6px; }
+.cal-weekday { text-align:center; font-size:11px; color:#777; }
+.cal-cell {
+  height:36px; border-radius:6px; display:flex; align-items:center; justify-content:center;
+  cursor:pointer; color:#333; border:0; background:transparent;
+  &.other { opacity:0.35; }
+  &.today { border:1px dashed rgba(0,0,0,0.12); }
+  &.selected { background:#FFC107; color:#111; }
+}
+
+.content-bottom { position:fixed; bottom:var(--size-14); width:100%; display:flex; justify-content:center; }
+.content-button { background:#FFC107; border:none; padding:10px 18px; border-radius:18px; cursor:pointer; display:flex; align-items:center; gap:8px; }
+
+.dialog-overlay { position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.4); display:flex; justify-content:center; align-items:center; z-index:2000; }
+.dialog {
+  background:#fff; padding:20px; border-radius:8px; min-width:280px; max-width:90%;
+  display:flex; flex-direction:column; gap:12px;
+  pre { white-space:pre-wrap; word-wrap:break-word; margin:0; color:var(--input-color); font-weight:400; }
+  button { align-self:flex-end; padding:6px 12px; border:none; border-radius:4px; background:#FFC107; cursor:pointer; }
+}
+
+
+.verification-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  // height: 100vh;
+}
+
+.card {
+  // padding: 30px;
+  text-align: center;
+  width: 90%;
+  max-width: 380px;
+  position: relative;
+}
+
+h2 {
+  color: #333;
+  margin-bottom: 18px;
+  font-size: 1.4em;
+}
+
+.camera-frame {
+  position: relative;
+  margin: 0 auto;
+  width: 350px;
+  padding-top: 100%;
+  overflow: hidden;
+  margin-bottom: 18px !important;
+  border-radius: 12px;
+}
+
+video {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transform: scaleX(-1); /* espelha a câmera frontal */
+  border-radius: 12px;
+}
+
+/* Oval de borda (feedback visual) */
+.oval-overlay {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 70%;
+  height: 90%;
+  border-radius: 50%;
+  border: 4px solid #f44336; /* vermelho padrão */
+  transform: translate(-50%, -50%);
+  box-sizing: border-box;
+  pointer-events: none;
+  transition: border-color 0.25s ease, box-shadow 0.25s ease;
+}
+
+/* classe adicionada dinamicamente para animação pulse */
+.oval-overlay.pulse-active {
+  box-shadow: 0 0 40px rgba(76, 175, 80, 0.18);
+}
+
+/* máscara escura ao redor */
+.oval-hint {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 70%;
+  height: 90%;
+  border-radius: 50%;
+  box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.55);
+  pointer-events: none;
+}
+
+/* instruções e botões */
+.instruction-text {
+  text-align: center;
+  color: #555;
+  margin-bottom: 20px;
+  font-weight: 500;
+  font-size: var(--size-14);
+}
+
+/* status */
+.status-message {
+  margin-top: 10px;
+  font-weight: 600;
+}
+
+.status-message.success {
+  color: #4caf50;
+}
+
+.status-message.error {
+  color: #f44336;
+}
+
+/* canvas oculto */
+canvas {
+  display: none;
+}
+
+/* ---------- Contador / Overlay Visual ---------- */
+.countdown-overlay {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 180ms ease;
+  z-index: 15;
+}
+
+.countdown-overlay.show {
+  opacity: 1;
+}
+
+.countdown-circle {
+  width: 170px;
+  height: 170px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+/* círculo do número */
+.count-value {
+  font-size: 48px;
+  font-weight: 800;
+  color: #fff;
+  z-index: 5;
+  text-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+}
+
+/* SVG radar rings */
+.radar {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  transform: rotate(-20deg);
+  z-index: 1;
+  pointer-events: none;
+}
+
+.radar-ring {
+  fill: none;
+  stroke: rgba(156, 39, 176, 0.85); /* cor do Nubank-ish */
+  stroke-width: 2;
+  stroke-dasharray: 4 6;
+  opacity: 0;
+  transform-origin: 50% 50%;
+}
+
+/* animação das rings: aparecer e expandir */
+.countdown-overlay.show .ring1 {
+  animation: ringPulse 1200ms ease-out infinite;
+  opacity: 0.95;
+}
+.countdown-overlay.show .ring2 {
+  animation: ringPulse 1600ms ease-out infinite;
+  opacity: 0.9;
+}
+.countdown-overlay.show .ring3 {
+  animation: ringPulse 2000ms ease-out infinite;
+  opacity: 0.7;
+}
+
+@keyframes ringPulse {
+  0% {
+    transform: scale(0.4);
+    opacity: 0.0;
+  }
+  50% {
+    transform: scale(0.85);
+    opacity: 0.6;
+  }
+  100% {
+    transform: scale(1.3);
+    opacity: 0.0;
+  }
+}
+
+/* ajuste responsivo */
+@media (max-width: 420px) {
+  .countdown-circle {
+    width: 130px;
+    height: 130px;
+  }
+  .count-value {
+    font-size: 40px;
+  }
+}
+
+/* Botão Capturar */
+.capture-button {
+  background-color: #6200ea;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 10px 18px;
+  font-size: 0.95em;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 10px auto 0;
+  transition: background-color 0.2s ease, transform 120ms ease;
+  z-index: 25;
+}
+
+.capture-button .camera-icon {
+  margin-right: 8px;
+  font-size: 1.1em;
+}
+
+.capture-button:hover {
+  background-color: #4b00b5;
+}
+
+.capture-button:active {
+  transform: scale(0.98);
+}

@@ -1,0 +1,26 @@
+.container {
+  width: 100%;
+  height: 100vh;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+
+  .center {
+    max-width: 600px;
+    background-color: var(--background-color-main);
+    height: 100vh;
+    margin: 0 auto;
+    padding: 0 !important;
+    overflow: hidden;
+  }
+}
+
+.msg-error {
+  width: 100%;
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+}
+
