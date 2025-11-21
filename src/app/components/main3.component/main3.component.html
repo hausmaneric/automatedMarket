@@ -1,0 +1,35 @@
+<div class="content">
+  <div class="content-logo">
+    @if (img) {
+      <img [src]="img" />
+    }
+  </div>
+
+  <div class="content-title">
+    Bem-vindo ao {{ name }}
+  </div>
+
+  <div class="content-buttons">
+    <button class="content-button" (click)="updateVisible(5)">
+      <mat-icon>face</mat-icon>
+      Reenviar facial
+    </button>
+
+    <button class="content-button delete" (click)="confirmDelete()">
+      <mat-icon>delete</mat-icon>
+      Apagar conta
+    </button>
+  </div>
+</div>
+
+<!-- Dialog de confirmação -->
+<div class="dialog-overlay" *ngIf="showDialog" (click)="closeDialog()">
+  <div class="dialog" (click)="$event.stopPropagation()">
+    <div class="dialog-title">Deseja apagar a sua conta?</div>
+
+    <div class="dialog-buttons">
+      <button class="dialog-button yes" (click)="deleteAccount()">Sim</button>
+      <button class="dialog-button no" (click)="closeDialog()">Não</button>
+    </div>
+  </div>
+</div>

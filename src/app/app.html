@@ -24,9 +24,30 @@
         @case (6) {
           <app-term (visibleChange)="onVisibleChanged($event)"></app-term>
         }
-        @default {
-          <app-main (visibleChange)="onVisibleChanged($event)"></app-main>
+        @case (7) {
+          <app-finish (visibleChange)="onVisibleChanged($event)"></app-finish>
         }
+        @case (8) {
+          <app-main2 (visibleChange)="onVisibleChanged($event)"></app-main2>
+        }
+        @case (9) {
+          <app-login (visibleChange)="onVisibleChanged($event)"></app-login>
+        }
+        @case (10) {
+          <app-main3 (visibleChange)="onVisibleChanged($event)"></app-main3>
+        }
+        @case (11) {
+          <app-recover (visibleChange)="onVisibleChanged($event)"></app-recover>
+        }
+        @case (12) {
+          <app-confirmation2 (visibleChange)="onVisibleChanged($event)"></app-confirmation2>
+        }
+        @case (13) {
+          <app-recover2 (visibleChange)="onVisibleChanged($event)"></app-recover2>
+        }
+        <!-- @default {
+          <app-main (visibleChange)="onVisibleChanged($event)"></app-main>
+        } -->
       }
     </div>
   </div>

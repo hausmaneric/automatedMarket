@@ -6,14 +6,14 @@ import { MainService } from '../../services/main.service';
 import { LoadingComponent } from "../loading/loading.component";
 
 @Component({
-  selector: 'app-term',
+  selector: 'app-finish',
   imports: [CommonModule, ReactiveFormsModule, MatIconModule, LoadingComponent],
-  providers: [MainService],
-  templateUrl: './term.component.html',
-  styleUrl: './term.component.scss',
+  providers:[MainService],
+  templateUrl: './finish.component.html',
+  styleUrl: './finish.component.scss',
 })
-export class TermComponent implements OnInit {
-  @ViewChild('codeInput') codeInputEl!: ElementRef;
+export class FinishComponent {
+@ViewChild('codeInput') codeInputEl!: ElementRef;
   @Output() visibleChange = new EventEmitter<number>();
 
   form = new FormGroup({
@@ -24,21 +24,14 @@ export class TermComponent implements OnInit {
   dialogMessage = '';
   showDialog = false;
   isLoading = false;
-  term = '';
 
-  constructor(
-    private renderer: Renderer2,
-    private mainService: MainService,
-    private cdr: ChangeDetectorRef
-  ) {}
+  constructor(private renderer: Renderer2, private mainService: MainService, private cdr: ChangeDetectorRef) {}
 
   ngOnInit(): void {
     if (this.form.get('code')!.value) this.focused['code'] = true;
-    this.term = this.mainService.getTerm() || 'Sem termos';
   }
 
   onFocus(name: string) { this.focused[name] = true; }
-
   onBlur(name: string) {
     const val = this.form.get(name)?.value;
     if (!val) this.focused[name] = false;
@@ -51,28 +44,14 @@ export class TermComponent implements OnInit {
   }
 
   async validateCode() {
-    const form = this.mainService.getFormValues();
-    this.isLoading = true;
-    const response: any = await this.mainService.customerAccessActive(form);
-    this.isLoading = false;
     this.cdr.detectChanges();
-
-    if (response.status === true) {
-      this.updateVisible(7);
-      this.mainService.resetForm();
-      this.cdr.detectChanges();
-    } else {
-      this.showDialogMessage(response.message);
-    }
+    this.closeDialog()
   }
 
-  showDialogMessage(msg: string) {
-    this.dialogMessage = msg;
-    this.showDialog = true;
-  }
-
+  showDialogMessage(msg: string) { this.dialogMessage = msg; this.showDialog = true; }
   closeDialog() {
     this.showDialog = false;
+    this.updateVisible(1);
     this.cdr.detectChanges();
   }
 

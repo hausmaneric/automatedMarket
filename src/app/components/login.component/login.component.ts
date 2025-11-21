@@ -7,20 +7,23 @@ import { ApiService } from '../../services/api.service';
 import { LoadingComponent } from '../loading/loading.component';
 
 @Component({
-  selector: 'app-document',
+  selector: 'app-login',
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule, MatIconModule, LoadingComponent],
   providers: [MainService, ApiService],
-  templateUrl: './document.component.html',
-  styleUrls: ['./document.component.scss'],
+  templateUrl: './login.component.html',
+  styleUrl: './login.component.scss',
 })
-export class DocumentComponent {
+export class LoginComponent {
   @ViewChild('cpfInput') cpfInputEl!: ElementRef;
   @Output() visibleChange = new EventEmitter<number>();
   @Output() cpfValidated = new EventEmitter<{ nome: string; nascimento: string }>();
 
+  showSenha = false;
+
   form = new FormGroup({
     cpf: new FormControl(''),
+    password: new FormControl(''),
   });
 
   focused: Record<string, boolean> = {};
@@ -73,7 +76,13 @@ export class DocumentComponent {
     const cpf = this.form.get('cpf')!.value;
     if (!cpf) {
       this.showDialogMessage('Por favor, insira o CPF.');
-      // 🔹 Marca para refocar depois que o usuário fechar o dialog
+      this.shouldRefocus = true;
+      return;
+    }
+
+    const psw = this.form.get('password')!.value;
+    if (!psw) {
+      this.showDialogMessage('Por favor, insira a senha.');
       this.shouldRefocus = true;
       return;
     }
@@ -83,10 +92,10 @@ export class DocumentComponent {
 
     try {
       this.mainService.setFormValue('cpf', cpf);
+      this.mainService.setFormValue('password', psw);
       this.mainService.setFormValue('type', 1);
 
-      const response: any = await this.mainService.customerAccessValidity(this.mainService.getFormValues());
-
+      const response: any = await this.mainService.customerAccessLogin(this.mainService.getFormValues());
       this.isLoading = false;
       this.cdr.detectChanges();
 
@@ -102,20 +111,20 @@ export class DocumentComponent {
         return;
       }
 
-      // if (data.situacao && data.situacao.codigo != 0) {
-      //   this.showDialogMessage('Situação: ' + data.situacao.descricao);
-      //   this.shouldRefocus = true;
-      //   return;
-      // }
+      if (data.situacao && data.situacao.codigo != 0) {
+        this.showDialogMessage('Situação: ' + data.situacao.descricao);
+        this.shouldRefocus = true;
+        return;
+      }
 
       this.mainService.setFormValue('name', data.nome || '');
 
-      if (data.email1) {
-        this.mainService.setFormValue('email', data.email1);
-      }
-
       if (data.codigo) {
         this.mainService.setFormValue('code', data.codigo);
+      }
+
+      if (data.email1) {
+        this.mainService.setFormValue('email', data.email1);
       }
 
       if (data.tel1ddd && data.tel1) {
@@ -133,8 +142,7 @@ export class DocumentComponent {
         nome: data.nome,
         nascimento: data.datanascimento || data.nascimento,
       });
-
-      this.updateVisible(3);
+      this.updateVisible(10);
       this.cdr.detectChanges();
     } catch (error) {
       console.error('Erro:', error);
@@ -172,9 +180,19 @@ export class DocumentComponent {
   closeDialog() {
     this.showDialog = false;
     this.cdr.detectChanges();
+
+    // 🔹 Só refoca o input DEPOIS que o usuário fecha o diálogo
+    if (this.shouldRefocus) {
+      this.shouldRefocus = false;
+      setTimeout(() => {
+        this.focusField('cpf');
+      }, 200);
+    }
   }
 
   updateVisible(newValue: number) {
     this.visibleChange.emit(newValue);
   }
+
+  toggleSenha() { this.showSenha = !this.showSenha; this.cdr.detectChanges(); }
 }

@@ -7,7 +7,7 @@
       <mat-icon>arrow_back</mat-icon>
     </button>
 
-    <div class="content-title">Informe o seu CPF</div>
+    <div class="content-title">Login</div>
   </div>
   <div class="content-image">
     <img src="assets/images/smiling.png" alt="imagem" />
@@ -17,17 +17,19 @@
     <div class="content-input">
       <div class="input-wrapper" [class.focused]="focused['cpf'] || form.get('cpf')?.value">
         <label>CPF</label>
-        <input
-          #cpfInput
-          type="text"
-          inputmode="numeric"
-          pattern="[0-9]*"
-          autocomplete="off"
-          formControlName="cpf"
-          (input)="onCpfInput($event)"
-          (focus)="onFocus('cpf')"
-          (blur)="onBlur('cpf')"
-        />
+        <input #cpfInput type="text" inputmode="numeric" pattern="[0-9]*" autocomplete="off" formControlName="cpf" (input)="onCpfInput($event)" (focus)="onFocus('cpf')" (blur)="onBlur('cpf')" />
+      </div>
+    </div>
+    <div class="content-input">
+      <div class="input-wrapper password" [class.focused]="focused['password'] || form.get('password')?.value">
+        <label>Senha</label>
+        <input maxlength="6" [type]="showSenha ? 'text' : 'password'" inputmode="numeric" pattern="[0-9]*"
+               formControlName="password"
+               autocomplete="new-password"
+               (focus)="onFocus('password')" (blur)="onBlur('password')" />
+        <button type="button" class="icon-btn" (click)="toggleSenha()">
+          <mat-icon>{{ showSenha ? 'visibility_off' : 'visibility' }}</mat-icon>
+        </button>
       </div>
     </div>
   </form>

@@ -1,24 +1,18 @@
 @if(isLoading){
   <app-loading></app-loading>
 }
-
 <div class="content">
-  <div class="content-title">Termos de Uso</div>
-
-  <!-- Texto com scroll -->
-  <div class="content-text">
-    <pre class="term-text">{{ term }}</pre>
-  </div>
+  <div class="content-title">Cadastro finalizado com sucesso!</div>
 
   <!-- Botão Avançar -->
   <div class="content-bottom">
-    <button class="content-button" (click)="validateCode()" [disabled]="isLoading">
-      <mat-icon>send</mat-icon> Concordar e Concluir
+    <button class="content-button" (click)="validateCode()">
+      Finalizar
     </button>
   </div>
 </div>
 
-<!-- Dialog -->
+<!-- Dialog central -->
 <div class="dialog-overlay" *ngIf="showDialog" (click)="closeDialog()">
   <div class="dialog" (click)="$event.stopPropagation()">
     <pre>{{ dialogMessage }}</pre>

@@ -11,7 +11,7 @@
   <div class="verification-container">
     <div class="card">
       <p class="instruction-text">
-        Posicione seu rosto na áre de encaixa
+        Posicione seu rosto na área de encaixe
         <br>
         e clique em capturar
       </p>
@@ -19,17 +19,14 @@
       <div class="camera-frame">
         <video #videoElement autoplay playsinline muted></video>
 
-        <!-- Oval overlay: a cor da borda muda via TypeScript -->
+        <!-- Oval overlay -->
         <div #ovalOverlay class="oval-overlay"></div>
-
-        <!-- Máscara escura ao redor -->
         <div class="oval-hint"></div>
 
-        <!-- Overlay de contagem (opcional) -->
-        <div #countdownOverlay class="countdown-overlay" [class.show]="false" >
+        <div #countdownOverlay class="countdown-overlay" [class.show]="false">
           <div class="countdown-circle">
             <div class="count-value">3</div>
-            <svg class="radar" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid meet" >
+            <svg class="radar" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid meet">
               <circle cx="50" cy="50" r="20" class="radar-ring ring1"></circle>
               <circle cx="50" cy="50" r="30" class="radar-ring ring2"></circle>
               <circle cx="50" cy="50" r="40" class="radar-ring ring3"></circle>
@@ -38,20 +35,16 @@
         </div>
       </div>
 
-
       @if(statusMessage){
-        <p class="status-message" [class.success]="isSuccess" [class.error]="!isSuccess" >
+        <p class="status-message" [class.success]="isSuccess" [class.error]="!isSuccess">
           {{ statusMessage }}
         </p>
       }
 
-
-      <!-- canvas oculto usado para captura/analise -->
       <canvas #canvasElement willReadFrequently="true"></canvas>
     </div>
   </div>
 
-  <!-- Botão Avançar -->
   <div class="content-bottom">
     <button class="content-button" (click)="validateImage()">
       <mat-icon>video_camera_front</mat-icon> Capturar
@@ -59,7 +52,6 @@
   </div>
 </div>
 
-<!-- Dialog central -->
 <div class="dialog-overlay" *ngIf="showDialog" (click)="closeDialog()">
   <div class="dialog" (click)="$event.stopPropagation()">
     <pre>{{ dialogMessage }}</pre>

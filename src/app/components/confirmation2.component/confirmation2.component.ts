@@ -6,15 +6,15 @@ import { MainService } from '../../services/main.service';
 import { LoadingComponent } from '../loading/loading.component';
 
 @Component({
-  selector: 'app-confirmation',
+  selector: 'app-confirmation2',
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule, MatIconModule, LoadingComponent],
   providers: [MainService],
-  templateUrl: './confirmation.component.html',
-  styleUrls: ['./confirmation.component.scss'],
+  templateUrl: './confirmation2.component.html',
+  styleUrl: './confirmation2.component.scss',
 })
-export class ConfirmationComponent implements OnInit {
-  @ViewChild('codeInput') codeInputEl!: ElementRef;
+export class Confirmation2Component {
+@ViewChild('codeInput') codeInputEl!: ElementRef;
   @Output() visibleChange = new EventEmitter<number>();
 
   form = new FormGroup({
@@ -78,7 +78,7 @@ export class ConfirmationComponent implements OnInit {
       this.cdr.detectChanges();
 
       if (response.status) {
-        this.updateVisible(5);
+        this.updateVisible(13);
       } else {
         this.showDialogMessage(response.message || 'Código inválido.');
       }

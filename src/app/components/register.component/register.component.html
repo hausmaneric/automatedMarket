@@ -1,6 +1,7 @@
-@if(isLoading){
+@if(isLoading) {
   <app-loading></app-loading>
 }
+
 <div class="content">
   <div class="content-title">Informe seus dados pessoais</div>
 
@@ -8,24 +9,25 @@
     <img src="assets/images/smiling.png" alt="imagem" />
   </div>
 
-  <form class="content-form" [formGroup]="form" (submit)="$event.preventDefault()">
+  <form class="content-form" [formGroup]="form" (ngSubmit)="validateForm()">
 
     <!-- Nome -->
     <div class="content-input">
       <div class="input-wrapper" [class.focused]="focused['name'] || form.get('name')?.value">
         <label>Nome</label>
         <input type="text" formControlName="name" [readonly]="nameReadonly"
-               (focus)="onFocus('name')" (blur)="onBlur('name')" />
+               (focus)="onFocus('name')" (blur)="onBlur('name')" autocomplete="name" />
       </div>
     </div>
+
     <!-- Telefone -->
     <div class="content-input">
       <div class="input-wrapper" [class.focused]="focused['phone'] || form.get('phone')?.value">
         <label>Telefone</label>
-        <input type="text" formControlName="phone"
-               maxlength="15"
+        <input #phoneInput type="text" formControlName="phone"
+               maxlength="15" inputmode="numeric" pattern="[0-9]*"
                (input)="onPhoneInput($event)"
-               (focus)="onFocus('phone')" (blur)="onBlur('phone')" />
+               (focus)="onFocus('phone')" (blur)="onBlur('phone')" autocomplete="tel" />
       </div>
     </div>
 
@@ -34,7 +36,7 @@
       <div class="input-wrapper" [class.focused]="focused['email'] || form.get('email')?.value">
         <label>E-mail</label>
         <input type="email" formControlName="email"
-               (focus)="onFocus('email')" (blur)="onBlur('email')" />
+               (focus)="onFocus('email')" (blur)="onBlur('email')" autocomplete="email" />
       </div>
     </div>
 
@@ -43,21 +45,20 @@
       <div class="input-wrapper date-wrapper" [class.focused]="focused['birthDate'] || form.get('birthDate')?.value">
         <label>Data de Nascimento</label>
         <input #dateInput type="text" [value]="dateDisplay" [readonly]="birthDateReadonly"
-               (focus)="onFocus('birthDate')" (blur)="onDateBlur()" style="cursor:text" />
+               (focus)="onFocus('birthDate')" (blur)="onDateBlur()" style="cursor:text" autocomplete="bday" />
 
-        <!-- Calendar popup -->
         <div *ngIf="calendarOpen" #calendar class="calendar-popup"
              (touchstart)="onTouchStart($event)" (touchend)="onTouchEnd($event)">
           <div class="cal-header">
-            <button class="cal-arrow" (click)="prevMonth()"><mat-icon>chevron_left</mat-icon></button>
+            <button class="cal-arrow" type="button" (click)="prevMonth()"><mat-icon>chevron_left</mat-icon></button>
             <div class="cal-title">{{ monthsPt[calMonth] }} {{ calYear }}</div>
-            <button class="cal-arrow" (click)="nextMonth()"><mat-icon>chevron_right</mat-icon></button>
+            <button class="cal-arrow" type="button" (click)="nextMonth()"><mat-icon>chevron_right</mat-icon></button>
           </div>
           <div class="cal-grid">
             <div class="cal-weekday" *ngFor="let w of weekdaysPt">{{ w }}</div>
             <ng-container *ngFor="let week of weeks">
               <ng-container *ngFor="let cell of week">
-                <button class="cal-cell" [class.other]="!cell.currentMonth"
+                <button type="button" class="cal-cell" [class.other]="!cell.currentMonth"
                         [class.today]="isToday(cell.d)"
                         [class.selected]="selectedDateObj() && cell.d && selectedDateObj()!.toDateString() === cell.d.toDateString()"
                         (click)="cell.d && pickDate(cell.d)">
@@ -72,10 +73,12 @@
 
     <!-- Senha -->
     <div class="content-input">
-      <label class="password-label">Crie a sua senha</label>
+      <label class="password-label">Crie a sua senha (6 números)</label>
       <div class="input-wrapper password" [class.focused]="focused['password'] || form.get('password')?.value">
         <label>Senha</label>
-        <input maxlength="6" [type]="showSenha ? 'text' : 'password'" formControlName="password"
+        <input maxlength="6" [type]="showSenha ? 'text' : 'password'" inputmode="numeric" pattern="[0-9]*"
+               formControlName="password"
+               autocomplete="new-password"
                (focus)="onFocus('password')" (blur)="onBlur('password')" />
         <button type="button" class="icon-btn" (click)="toggleSenha()">
           <mat-icon>{{ showSenha ? 'visibility_off' : 'visibility' }}</mat-icon>
@@ -87,7 +90,10 @@
     <div class="content-input">
       <div class="input-wrapper password" [class.focused]="focused['confirmPassword'] || form.get('confirmPassword')?.value">
         <label>Confirmação de Senha</label>
-        <input maxlength="6" [type]="showConfirm ? 'text' : 'password'" formControlName="confirmPassword"
+        <input maxlength="6" [type]="showConfirm ? 'text' : 'password'"
+               formControlName="confirmPassword"
+               autocomplete="new-password"
+               inputmode="numeric" pattern="[0-9]*"
                (focus)="onFocus('confirmPassword')" (blur)="onBlur('confirmPassword')" />
         <button type="button" class="icon-btn" (click)="toggleConfirm()">
           <mat-icon>{{ showConfirm ? 'visibility_off' : 'visibility' }}</mat-icon>
@@ -95,20 +101,17 @@
       </div>
     </div>
 
+    <div class="content-bottom">
+      <button class="content-button" type="submit" [disabled]="isLoading">
+        <mat-icon>arrow_forward</mat-icon> Avançar
+      </button>
+    </div>
   </form>
-
-  <!-- Botão Avançar -->
-  <div class="content-bottom">
-    <button class="content-button" (click)="validateForm()">
-      <mat-icon>arrow_forward</mat-icon> Avançar
-    </button>
-  </div>
 </div>
 
-<!-- Dialog -->
 <div class="dialog-overlay" *ngIf="showDialog" (click)="closeDialog()">
   <div class="dialog" (click)="$event.stopPropagation()">
     <pre>{{ dialogMessage }}</pre>
-    <button (click)="closeDialog()">Fechar</button>
+    <button type="button" (click)="closeDialog()">Fechar</button>
   </div>
 </div>

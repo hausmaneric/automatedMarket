@@ -1,6 +1,16 @@
-import {Component,ElementRef,HostListener,OnInit,Renderer2,ViewChild,AfterViewInit,Input,OnChanges,SimpleChanges,Output,EventEmitter, ChangeDetectorRef, NgZone} from '@angular/core';
+import {
+  Component,
+  ElementRef,
+  EventEmitter,
+  Output,
+  ViewChild,
+  NgZone,
+  ChangeDetectorRef,
+  OnDestroy,
+  AfterViewInit,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ReactiveFormsModule, FormGroup, FormControl } from '@angular/forms';
+import { FormGroup, FormControl, ReactiveFormsModule } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
 import { FilesetResolver, FaceLandmarker } from '@mediapipe/tasks-vision';
 import { MainService } from '../../services/main.service';
@@ -11,10 +21,11 @@ import { LoadingComponent } from '../loading/loading.component';
   imports: [CommonModule, ReactiveFormsModule, MatIconModule, LoadingComponent],
   providers: [MainService],
   templateUrl: './face.component.html',
-  styleUrl: './face.component.scss',
+  styleUrls: ['./face.component.scss'],
 })
-export class FaceComponent {
+export class FaceComponent implements AfterViewInit, OnDestroy {
   @Output() visibleChange = new EventEmitter<number>();
+
   dialogMessage = '';
   showDialog = false;
 
@@ -36,20 +47,24 @@ export class FaceComponent {
   private lastDetectTime = 0;
   private frameCounter = 0;
 
-  // thresholds
   private THRESH_CENTER_X = 0.12;
   private THRESH_CENTER_Y = 0.14;
   private THRESH_ROLL_DEG = 12;
   private THRESH_YAW_RATIO_HIGH = 1.25;
   private THRESH_YAW_RATIO_LOW = 0.8;
   private THRESH_EYE_BRIGHTNESS = 38;
+
   isLoading = false;
 
   form = new FormGroup({
-    image: new FormControl('')
+    image: new FormControl(''),
   });
 
-  constructor(private cdr: ChangeDetectorRef, private zone: NgZone, private mainService: MainService,){}
+  constructor(
+    private cdr: ChangeDetectorRef,
+    private zone: NgZone,
+    private mainService: MainService
+  ) {}
 
   async ngAfterViewInit(): Promise<void> {
     await this.initFaceLandmarker();
@@ -60,7 +75,6 @@ export class FaceComponent {
     this.stopCamera();
   }
 
-  /** Inicializa FaceLandmarker via CDN */
   async initFaceLandmarker() {
     try {
       const fileset = await FilesetResolver.forVisionTasks(
@@ -76,16 +90,19 @@ export class FaceComponent {
         numFaces: 1,
       });
 
-      this.statusMessage = 'Modelo carregado. Iniciando câmera...';
-      this.instructionMessage =
-        'Posicione seu rosto dentro da marcação e siga as instruções.';
-      this.analysisStarted = true;
-      this.cdr.detectChanges();
+      this.zone.run(() => {
+        this.statusMessage = 'Modelo carregado. Iniciando câmera...';
+        this.instructionMessage =
+          'Posicione seu rosto dentro da marcação e siga as instruções.';
+        this.analysisStarted = true;
+      });
     } catch (err) {
-      console.error('Erro ao carregar modelo FaceLandmarker:', err);
-      this.statusMessage = 'Erro ao carregar modelo facial.';
-      this.instructionMessage = 'Erro ao carregar modelo facial.';
-      this.cdr.detectChanges();
+      console.error('Erro ao carregar modelo:', err);
+
+      this.zone.run(() => {
+        this.statusMessage = 'Erro ao carregar modelo facial.';
+        this.instructionMessage = 'Erro ao carregar modelo facial.';
+      });
     }
   }
 
@@ -99,16 +116,20 @@ export class FaceComponent {
       video.srcObject = this.videoStream;
       await video.play();
 
-      this.cameraActive = true;
-      this.statusMessage = 'Câmera ativa — analisando...';
-      this.instructionMessage = 'Posicione seu rosto dentro da marcação.';
-      this.cdr.detectChanges();
+      this.zone.run(() => {
+        this.cameraActive = true;
+        this.statusMessage = 'Câmera ativa — analisando...';
+        this.instructionMessage = 'Posicione seu rosto dentro da marcação.';
+      });
 
-      this.zone.runOutsideAngular(() => this.startLoop());
+      this.zone.runOutsideAngular(() => this.loopFaceDetection());
     } catch (err) {
       console.error('Erro ao acessar câmera:', err);
-      this.statusMessage = 'Não foi possível acessar a câmera. Verifique as permissões.';
-      this.cdr.detectChanges();
+
+      this.zone.run(() => {
+        this.statusMessage =
+          'Não foi possível acessar a câmera. Verifique as permissões.';
+      });
     }
   }
 
@@ -117,46 +138,48 @@ export class FaceComponent {
       cancelAnimationFrame(this.rafId);
       this.rafId = null;
     }
+
     if (this.videoStream) {
       this.videoStream.getTracks().forEach((t) => t.stop());
       this.videoStream = null;
     }
-    this.showCaptureButton = false;
-    this.cdr.detectChanges();
+
+    this.zone.run(() => {
+      this.showCaptureButton = false;
+    });
   }
 
-  private startLoop() {
+  private loopFaceDetection() {
     const loop = async () => {
-      try {
-        const video = this.videoElementRef.nativeElement;
-        if (!this.faceLandmarker || !video || video.readyState < 2) {
-          this.rafId = requestAnimationFrame(loop);
-          return;
-        }
+      const video = this.videoElementRef.nativeElement;
 
-        const now = performance.now();
-        const MIN_MS = 80;
-        if (now - this.lastDetectTime >= MIN_MS) {
-          this.lastDetectTime = now;
-          await this.processFrame();
-        }
-      } catch (err) {
-        console.warn('Erro no loop:', err);
-      } finally {
+      if (!this.faceLandmarker || !video || video.readyState < 2) {
         this.rafId = requestAnimationFrame(loop);
+        return;
       }
+
+      const now = performance.now();
+      if (now - this.lastDetectTime >= 80) {
+        this.lastDetectTime = now;
+        await this.processFrame();
+      }
+
+      this.rafId = requestAnimationFrame(loop);
     };
+
     this.rafId = requestAnimationFrame(loop);
   }
 
   private async processFrame() {
     const video = this.videoElementRef.nativeElement;
     const canvas = this.canvasElementRef.nativeElement;
+
     const ctx = canvas.getContext('2d', { willReadFrequently: true })!;
     if (!video.videoWidth || !video.videoHeight) return;
 
     canvas.width = video.videoWidth;
     canvas.height = video.videoHeight;
+
     ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
     let result;
@@ -176,15 +199,15 @@ export class FaceComponent {
     const rightEye = landmarks[263];
     const noseTip = landmarks[1];
 
-    if (!this.isValidPoint(leftEye) || !this.isValidPoint(rightEye)) {
+    if (!this.isValid(leftEye) || !this.isValid(rightEye)) {
       this.updateStatus('Ajuste a posição do rosto.', false, '#f44336');
       return;
     }
 
-    // cálculos
     const eyeDx = rightEye.x - leftEye.x;
     const eyeDy = rightEye.y - leftEye.y;
     const rollDeg = (Math.atan2(eyeDy, eyeDx) * 180) / Math.PI;
+
     const faceCenterX = (leftEye.x + rightEye.x) / 2;
     const faceCenterY = (leftEye.y + rightEye.y) / 2;
     const offsetX = faceCenterX - 0.5;
@@ -195,15 +218,15 @@ export class FaceComponent {
     const yawRatio = dRight > 0 ? dLeft / dRight : 1;
 
     this.frameCounter++;
+
     let eyeBrightness: number | null = null;
     if (this.frameCounter % 6 === 0) {
-      eyeBrightness = this.safeEyeBrightness(ctx, leftEye, rightEye);
+      eyeBrightness = this.calcBrightness(ctx, leftEye, rightEye);
     }
 
-    // lógica de instruções
-    if (eyeBrightness != null && eyeBrightness < this.THRESH_EYE_BRIGHTNESS)
+    if (eyeBrightness !== null && eyeBrightness < this.THRESH_EYE_BRIGHTNESS)
       return this.updateStatus(
-        'Remova os óculos escuros ou melhore a iluminação.',
+        'Remova os óculos escuros ou aumente a iluminação.',
         false,
         '#f44336'
       );
@@ -218,41 +241,53 @@ export class FaceComponent {
       );
 
     if (yawRatio > this.THRESH_YAW_RATIO_HIGH)
-      return this.updateStatus('Vire levemente a cabeça para a direita.', false, '#f44336');
+      return this.updateStatus('Vire um pouco à direita.', false, '#f44336');
+
     if (yawRatio < this.THRESH_YAW_RATIO_LOW)
-      return this.updateStatus('Vire levemente a cabeça para a esquerda.', false, '#f44336');
+      return this.updateStatus('Vire um pouco à esquerda.', false, '#f44336');
+
     if (offsetX > this.THRESH_CENTER_X)
-      return this.updateStatus('Vire um pouco para a direita (centralize).', false, '#f44336');
+      return this.updateStatus('Centralize mais para a esquerda.', false, '#f44336');
+
     if (offsetX < -this.THRESH_CENTER_X)
-      return this.updateStatus('Vire um pouco para a esquerda (centralize).', false, '#f44336');
+      return this.updateStatus('Centralize mais para a direita.', false, '#f44336');
+
     if (offsetY > this.THRESH_CENTER_Y)
       return this.updateStatus('Levante um pouco a cabeça.', false, '#f44336');
+
     if (offsetY < -this.THRESH_CENTER_Y)
       return this.updateStatus('Abaixe um pouco a cabeça.', false, '#f44336');
 
-    // sucesso
     this.updateStatus('Perfeito — rosto pronto para captura.', true, '#4caf50');
   }
 
-  private isValidPoint(p: any) {
+  private isValid(p: any) {
     return p && typeof p.x === 'number' && typeof p.y === 'number';
   }
 
-  private safeEyeBrightness(ctx: CanvasRenderingContext2D, leftEye: any, rightEye: any ): number | null {
+  private calcBrightness(
+    ctx: CanvasRenderingContext2D,
+    leftEye: any,
+    rightEye: any
+  ): number | null {
     try {
       const canvas = ctx.canvas;
+
       const lx = leftEye.x * canvas.width;
       const ly = leftEye.y * canvas.height;
       const rx = rightEye.x * canvas.width;
       const ry = rightEye.y * canvas.height;
+
       const x = Math.min(lx, rx) - 10;
       const y = Math.min(ly, ry) - 10;
       const w = Math.abs(rx - lx) + 20;
       const h = Math.abs(ry - ly) + 20;
+
       const img = ctx.getImageData(x, y, w, h);
       let total = 0;
       for (let i = 0; i < img.data.length; i += 4)
         total += (img.data[i] + img.data[i + 1] + img.data[i + 2]) / 3;
+
       return total / (img.data.length / 4);
     } catch {
       return null;
@@ -264,85 +299,123 @@ export class FaceComponent {
       this.statusMessage = message;
       this.isSuccess = success;
       this.showCaptureButton = success;
+
       const el = this.ovalOverlayRef?.nativeElement;
       if (el) {
         el.style.borderColor = color;
-        el.style.boxShadow = success
-          ? '0 0 30px rgba(76,175,80,0.14)'
-          : 'none';
       }
-      this.cdr.detectChanges();
     });
   }
 
   onCaptureClick() {
     if (!this.isSuccess) {
-      this.statusMessage =
-        'Não é possível capturar: ajuste o rosto conforme instruções.';
-      this.cdr.detectChanges();
+      this.zone.run(() => {
+        this.dialogMessage = this.statusMessage;
+        this.showDialog = true;
+      });
       return;
     }
     this.captureImage();
   }
 
-  captureImage(): Promise<void> {
-    return new Promise((resolve, reject) => {
-      const video = this.videoElementRef.nativeElement;
-      const canvas = this.canvasElementRef.nativeElement;
-      const ctx = canvas.getContext('2d');
-      if (!ctx) return reject('Canvas não disponível');
+  async captureImage(): Promise<void> {
+    const video = this.videoElementRef.nativeElement;
+    const canvas = this.canvasElementRef.nativeElement;
 
-      canvas.width = video.videoWidth;
-      canvas.height = video.videoHeight;
-      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
 
-      const imageDataUrl = canvas.toDataURL('image/jpeg', 0.9);
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+    const oval = this.ovalOverlayRef.nativeElement.getBoundingClientRect();
+    const videoRect = video.getBoundingClientRect();
+
+    const scaleX = canvas.width / videoRect.width;
+    const scaleY = canvas.height / videoRect.height;
+
+    const x = (oval.left - videoRect.left) * scaleX;
+    const y = (oval.top - videoRect.top) * scaleY;
+    const w = oval.width * scaleX;
+    const h = oval.height * scaleY;
+
+    const croppedCanvas = document.createElement('canvas');
+    const croppedCtx = croppedCanvas.getContext('2d')!;
+
+    croppedCanvas.width = w;
+    croppedCanvas.height = h;
+
+    croppedCtx.save();
+    croppedCtx.beginPath();
+    croppedCtx.ellipse(w / 2, h / 2, w / 2, h / 2, 0, 0, Math.PI * 2);
+    croppedCtx.clip();
+    croppedCtx.drawImage(canvas, x, y, w, h, 0, 0, w, h);
+    croppedCtx.restore();
+
+    const imageDataUrl = croppedCanvas.toDataURL('image/jpeg', 0.9);
+
+    this.zone.run(() => {
       this.form.get('image')!.setValue(imageDataUrl);
-      this.statusMessage = 'Imagem capturada com sucesso!';
-      this.cdr.detectChanges();
-
-      resolve();
     });
   }
 
   closeVerification() {
     this.stopCamera();
-    this.statusMessage = 'Verificação encerrada.';
-    this.cdr.detectChanges();
+    this.zone.run(() => {
+      this.statusMessage = 'Verificação encerrada.';
+    });
   }
 
-  updateVisible(newValue: number) {
-    this.visibleChange.emit(newValue);
+  updateVisible(v: number) {
+    this.visibleChange.emit(v);
   }
 
   async validateImage() {
-    try {
-      await this.captureImage();
-      const imageFile = this.form.get('image')!.value;
-      if (imageFile) {
-        this.mainService.setFormValue('image', this.form.get('image')!.value);
-        this.isLoading = true;
-        const response: any = await this.mainService.customerAccessFace(this.mainService.getFormValues());
-        this.isLoading = false;
-        this.cdr.detectChanges();
-        if (response.status){
-          this.updateVisible(6);
-        }else{
-          this.showDialogMessage(response.message);
-        }
-
-      } else {
-        this.showDialogMessage('Imagem não informada.');
-      }
-    } catch (err) {
-      console.error(err);
-      this.showDialogMessage('Erro ao capturar a imagem.');
+    if (!this.isSuccess) {
+      this.zone.run(() => {
+        this.dialogMessage = this.statusMessage;
+        this.showDialog = true;
+      });
+      return;
     }
+
+    await this.captureImage();
+    const imageFile = this.form.get('image')!.value;
+
+    if (!imageFile) {
+      this.zone.run(() => {
+        this.dialogMessage = 'Imagem não informada.';
+        this.showDialog = true;
+      });
+      return;
+    }
+
+    this.zone.run(() => (this.isLoading = true));
+    this.mainService.setFormValue('image', imageFile);
+    const response: any = await this.mainService.customerAccessFace(this.mainService.getFormValues());
+    this.zone.run(() => {
+      this.isLoading = false;
+      if (response.status) {
+        this.updateVisible(6);
+      } else {
+        this.dialogMessage = response.message;
+        this.showDialog = true;
+      }
+    });
   }
 
-  showDialogMessage(msg: string) { this.dialogMessage = msg; this.showDialog = true; }
+  showDialogMessage(msg: string) {
+    this.zone.run(() => {
+      this.dialogMessage = msg;
+      this.showDialog = true;
+    });
+  }
+
   closeDialog() {
-    this.showDialog = false;
-    this.cdr.detectChanges();
+    this.zone.run(() => {
+      this.showDialog = false;
+    });
   }
 }

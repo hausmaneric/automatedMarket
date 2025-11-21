@@ -3,14 +3,14 @@ import { MatIconModule } from '@angular/material/icon';
 import { MainService } from '../../services/main.service';
 
 @Component({
-  selector: 'app-main',
+  selector: 'app-main2',
   standalone: true,
   imports: [MatIconModule],
   providers: [MainService],
-  templateUrl: './main.component.html',
-  styleUrl: './main.component.scss',
+  templateUrl: './main2.component.html',
+  styleUrl: './main2.component.scss',
 })
-export class MainComponent {
+export class Main2Component {
   name: string = '';
   img: string = '';
 

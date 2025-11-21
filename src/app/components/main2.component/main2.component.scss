@@ -13,11 +13,22 @@
     margin-top: 35px;
     display: flex;
     justify-content: center;
+    position: relative; /* permite posicionar o botão de voltar */
 
     img {
       width: 100%;
       max-width: 180px;
       height: auto;
+    }
+
+    .back-button {
+      border: 0 !important;
+      background-color: transparent !important;
+      position: absolute;
+      top: 0;
+      left: 0;
+      color: var(--primary-color);
+      z-index: 2;
     }
   }
 

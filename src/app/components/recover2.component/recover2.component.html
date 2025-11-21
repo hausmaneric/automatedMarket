@@ -1,0 +1,57 @@
+@if(isLoading) {
+  <app-loading></app-loading>
+}
+
+<div class="content">
+  <div class="content-title">Recuperar Senha</div>
+
+  <div class="content-image">
+    <img src="assets/images/smiling.png" alt="imagem" />
+  </div>
+
+  <form class="content-form" [formGroup]="form" (ngSubmit)="validateForm()">
+
+    <!-- Senha -->
+    <div class="content-input">
+      <label class="password-label">Crie a sua senha (6 números)</label>
+      <div class="input-wrapper password" [class.focused]="focused['password'] || form.get('password')?.value">
+        <label>Senha</label>
+        <input maxlength="6" [type]="showSenha ? 'text' : 'password'" inputmode="numeric" pattern="[0-9]*"
+               formControlName="password"
+               autocomplete="new-password"
+               (focus)="onFocus('password')" (blur)="onBlur('password')" />
+        <button type="button" class="icon-btn" (click)="toggleSenha()">
+          <mat-icon>{{ showSenha ? 'visibility_off' : 'visibility' }}</mat-icon>
+        </button>
+      </div>
+    </div>
+
+    <!-- Confirmar Senha -->
+    <div class="content-input">
+      <div class="input-wrapper password" [class.focused]="focused['confirmPassword'] || form.get('confirmPassword')?.value">
+        <label>Confirmação de Senha</label>
+        <input maxlength="6" [type]="showConfirm ? 'text' : 'password'"
+               formControlName="confirmPassword"
+               autocomplete="new-password"
+               inputmode="numeric" pattern="[0-9]*"
+               (focus)="onFocus('confirmPassword')" (blur)="onBlur('confirmPassword')" />
+        <button type="button" class="icon-btn" (click)="toggleConfirm()">
+          <mat-icon>{{ showConfirm ? 'visibility_off' : 'visibility' }}</mat-icon>
+        </button>
+      </div>
+    </div>
+
+    <div class="content-bottom">
+      <button class="content-button" type="submit" [disabled]="isLoading">
+        <mat-icon>arrow_forward</mat-icon> Recuperar
+      </button>
+    </div>
+  </form>
+</div>
+
+<div class="dialog-overlay" *ngIf="showDialog" (click)="closeDialog()">
+  <div class="dialog" (click)="$event.stopPropagation()">
+    <pre>{{ dialogMessage }}</pre>
+    <button type="button" (click)="closeDialog()">Fechar</button>
+  </div>
+</div>

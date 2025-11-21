@@ -1,4 +1,4 @@
-import { Component, ElementRef, HostListener, OnInit, Renderer2, ViewChild,AfterViewInit, Input, OnChanges, SimpleChanges, Output, EventEmitter,ChangeDetectorRef} from '@angular/core';
+import { Component, ElementRef, HostListener, OnInit, Renderer2, ViewChild, AfterViewInit, Input, OnChanges, SimpleChanges, Output, EventEmitter, ChangeDetectorRef} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormGroup, FormControl } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
@@ -16,11 +16,11 @@ import { LoadingComponent } from '../loading/loading.component';
 export class RegisterComponent implements OnInit, AfterViewInit, OnChanges {
   @Input() nome: string = '';
   @Input() nascimento: string = '';
-
   @Output() visibleChange = new EventEmitter<number>();
 
   @ViewChild('calendar') calendarEl!: ElementRef;
   @ViewChild('dateInput') dateInputEl!: ElementRef;
+  @ViewChild('phoneInput') phoneInputEl!: ElementRef<HTMLInputElement>;
 
   form = new FormGroup({
     name: new FormControl(''),
@@ -60,12 +60,32 @@ export class RegisterComponent implements OnInit, AfterViewInit, OnChanges {
     confirmPassword: 'Confirmação de Senha'
   };
 
-  constructor(private cdr: ChangeDetectorRef,private hostEl: ElementRef,private renderer: Renderer2,private mainService: MainService) {}
+  constructor(
+    private cdr: ChangeDetectorRef,
+    private hostEl: ElementRef,
+    private renderer: Renderer2,
+    private mainService: MainService
+  ) {}
 
   ngOnInit(): void {
     Object.keys(this.form.controls).forEach(k => {
       if (this.form.get(k)!.value) this.focused[k] = true;
     });
+
+    const update = this.mainService.getFormValue('update');
+    if (update !== 0) {
+      this.form.get('email')!.setValue(this.mainService.getFormValue('email'));
+
+      const rawPhone = this.mainService.getFormValue('phone');
+      if (rawPhone) {
+        // Remove tudo que não é dígito
+        const digits = rawPhone.replace(/\D/g, '');
+
+        // Formata com a mesma lógica usada no onPhoneInput
+        const formattedPhone = this.formatPhoneFromDigits(digits);
+        this.form.get('phone')!.setValue(formattedPhone);
+      }
+    }
   }
 
   ngAfterViewInit(): void {}
@@ -89,29 +109,63 @@ export class RegisterComponent implements OnInit, AfterViewInit, OnChanges {
     if (!val) this.focused[name] = false;
   }
 
-  onPhoneInput(ev: Event) {
-    const input = ev.target as HTMLInputElement;
-    let digits = (input.value || '').replace(/\D/g, '').slice(0, 11);
-    let out = digits;
-
-    if (digits.length > 6)
-      out = digits.replace(/^(\d{2})(\d{5})(\d{0,4}).*/, '($1) $2-$3');
-    else if (digits.length > 2)
-      out = digits.replace(/^(\d{2})(\d{0,5}).*/, '($1) $2');
-    else if (digits.length > 0)
-      out = digits.replace(/^(\d{0,2}).*/, '($1');
-
-    input.value = out;
-    this.form.get('phone')!.setValue(out);
-    this.focused['phone'] = !!out;
+  // --- PHONE HANDLING (improved) ---
+  private formatPhoneFromDigits(digits: string): string {
+    const d = digits.slice(0, 11);
+    if (!d) return '';
+    if (d.length <= 2) return `(${d}`;
+    if (d.length <= 6) return `(${d.slice(0,2)}) ${d.slice(2)}`;
+    if (d.length <= 10) return `(${d.slice(0,2)}) ${d.slice(2,6)}-${d.slice(6)}`;
+    // 11 digits
+    return `(${d.slice(0,2)}) ${d.slice(2,7)}-${d.slice(7,11)}`;
   }
 
-  toggleSenha() { this.showSenha = !this.showSenha; }
-  toggleConfirm() { this.showConfirm = !this.showConfirm; }
+  onPhoneInput(ev: Event) {
+    const input = ev.target as HTMLInputElement;
+    const prevValue = input.value;
+    const prevCursor = input.selectionStart ?? prevValue.length;
+
+    // Count how many digits are before the cursor in the previous value
+    const digitsBeforeCursor = prevValue.slice(0, prevCursor).replace(/\D/g, '').length;
+
+    // Get digits from new raw input value (user may paste or type)
+    let digits = (input.value || '').replace(/\D/g, '').slice(0, 11);
+
+    const formatted = this.formatPhoneFromDigits(digits);
+    input.value = formatted;
+    this.form.get('phone')!.setValue(formatted);
+
+    // Decide new cursor position: place it after the same count of digits
+    let newPos = formatted.length;
+    if (digitsBeforeCursor === 0) {
+      newPos = formatted.indexOf('(') >= 0 ? formatted.indexOf('(') + 1 : 0;
+    } else {
+      // find index in formatted where the nth digit appears
+      let cnt = 0;
+      newPos = formatted.length;
+      for (let i = 0; i < formatted.length; i++) {
+        if (/\d/.test(formatted[i])) cnt++;
+        if (cnt === digitsBeforeCursor) {
+          newPos = i + 1; // cursor after that digit
+          break;
+        }
+      }
+    }
+
+    // set cursor safely
+    try { input.setSelectionRange(newPos, newPos); } catch (e) { /* ignore */ }
+
+    // update focused state
+    this.focused['phone'] = !!formatted;
+  }
+
+  // --- END PHONE HANDLING ---
+
+  toggleSenha() { this.showSenha = !this.showSenha; this.cdr.detectChanges(); }
+  toggleConfirm() { this.showConfirm = !this.showConfirm; this.cdr.detectChanges(); }
 
   formatDisplayDate(value: string | null): string {
     if (!value) return '';
-
     let day: string, month: string, year: string;
 
     if (value.includes('-')) {
@@ -127,7 +181,6 @@ export class RegisterComponent implements OnInit, AfterViewInit, OnChanges {
     } else {
       return value;
     }
-
     return `${day}/${month}/${year}`;
   }
 
@@ -261,7 +314,20 @@ export class RegisterComponent implements OnInit, AfterViewInit, OnChanges {
   }
 
   async validateForm() {
+    // ---- remove focus and close keyboard/calendar before validation ----
+    try {
+      const active = document.activeElement as HTMLElement | null;
+      if (active && typeof active.blur === 'function') active.blur();
+    } catch (e) { /* ignore */ }
+
+    // close calendar if open
+    this.closeCalendar();
+
+    // ensure UI focus flags are reset so labels don't stay in focused state
+    Object.keys(this.focused).forEach(k => this.focused[k] = false);
     this.cdr.detectChanges();
+    // --------------------------------------------------------------------
+
     const val = this.form.value;
     const errors: string[] = [];
 
@@ -281,24 +347,61 @@ export class RegisterComponent implements OnInit, AfterViewInit, OnChanges {
 
     if (errors.length) this.showDialogMessage('Erros:\n' + errors.join('\n'));
     else {
-      this.mainService.setFormValue('name', this.form.get('name')!.value);
-      this.mainService.setFormValue('email', this.form.get('email')!.value);
-      this.mainService.setFormValue('phone', this.form.get('phone')!.value);
-      this.mainService.setFormValue('birthDate', this.form.get('birthDate')!.value);
-      this.mainService.setFormValue('password', this.form.get('password')!.value);
+      if(this.mainService.getFormValue('update') !== 0){
+        this.mainService.setFormValue('name', this.form.get('name')!.value);
+        this.mainService.setFormValue('email', this.form.get('email')!.value);
+        this.mainService.setFormValue('phone', this.form.get('phone')!.value);
+        const birthDateValue = this.form.get('birthDate')!.value; // ex: "30062001"
 
-      this.isLoading = true;
+        if (birthDateValue && birthDateValue.length === 8) {
+          const day = birthDateValue.substring(0, 2);
+          const month = birthDateValue.substring(2, 4);
+          const year = birthDateValue.substring(4, 8);
+          const formattedDate = `${year}-${month}-${day}T00:00:00`;
 
-      const response: any = await this.mainService.customerAccessRegister(this.mainService.getFormValuesList());
-      this.isLoading = false;
-      this.cdr.detectChanges();
-      if (response.status){
-        this.mainService.setFormValue('code', response.data[0].code);
-        this.updateVisible(4);
-      }else{
-        this.showDialogMessage(response.message);
+          this.mainService.setFormValue('birthDate', formattedDate);
+        }
+        this.mainService.setFormValue('password', this.form.get('password')!.value);
+
+        this.isLoading = true;
+
+        const response: any = await this.mainService.customerAccessUpdate(this.mainService.getFormValuesList());
         this.isLoading = false;
-        this.cdr.detectChanges();
+        this.cdr.detectChanges();this.cdr.detectChanges();
+
+        if (response.status){
+          this.mainService.setFormValue('code', response.data[0].code);
+          this.updateVisible(4);
+        } else {
+          this.showDialogMessage(response.message);
+        }
+      }else{
+        this.mainService.setFormValue('name', this.form.get('name')!.value);
+        this.mainService.setFormValue('email', this.form.get('email')!.value);
+        this.mainService.setFormValue('phone', this.form.get('phone')!.value);
+        const birthDateValue = this.form.get('birthDate')!.value; // ex: "30062001"
+
+        if (birthDateValue && birthDateValue.length === 8) {
+          const day = birthDateValue.substring(0, 2);
+          const month = birthDateValue.substring(2, 4);
+          const year = birthDateValue.substring(4, 8);
+          const formattedDate = `${year}-${month}-${day}T00:00:00`;
+
+          this.mainService.setFormValue('birthDate', formattedDate);
+        }
+        this.mainService.setFormValue('password', this.form.get('password')!.value);
+
+        this.isLoading = true;
+
+        const response: any = await this.mainService.customerAccessRegister(this.mainService.getFormValuesList());
+        this.isLoading = false;
+        this.cdr.detectChanges();this.cdr.detectChanges();
+        if (response.status){
+          this.mainService.setFormValue('code', response.data[0].code);
+          this.updateVisible(4);
+        } else {
+          this.showDialogMessage(response.message);
+        }
       }
     }
   }
@@ -316,12 +419,8 @@ export class RegisterComponent implements OnInit, AfterViewInit, OnChanges {
   }
 
   showDialogMessage(msg: string) { this.dialogMessage = msg; this.showDialog = true; }
-  closeDialog() {
-    this.showDialog = false;
-    this.cdr.detectChanges();
-  }
+  closeDialog() { this.showDialog = false; this.cdr.detectChanges(); }
 
-  updateVisible(newValue: number) {
-    this.visibleChange.emit(newValue);
-  }
+  updateVisible(newValue: number) { this.visibleChange.emit(newValue); }
+
 }

@@ -1,10 +1,12 @@
 <div class="content">
   <div class="content-logo">
-    <img src="assets/images/logo.png" alt="Nosso Mini" />
+    @if(img){
+      <img [src]="img" />
+    }
   </div>
 
   <div class="content-title">
-    Bem vindo ao Nosso Mini
+    Bem vindo ao {{name}}
   </div>
 
   <div class="content-text">
@@ -18,7 +20,7 @@
       Fazer meu cadastro
     </button>
 
-    <button class="content-button">
+    <button class="content-button" (click)="updateVisible(8)">
       <mat-icon>person</mat-icon>
       Já sou cadastrado
     </button>

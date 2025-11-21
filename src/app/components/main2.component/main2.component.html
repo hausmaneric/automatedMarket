@@ -1,0 +1,27 @@
+<div class="content">
+  <div class="content-logo">
+    <button mat-icon-button class="back-button" (click)="updateVisible(1)">
+      <mat-icon>arrow_back</mat-icon>
+    </button>
+
+    @if(img){
+      <img [src]="img" />
+    }
+  </div>
+
+  <div class="content-title">
+    Bem vindo ao {{name}}
+  </div>
+
+  <div class="content-buttons">
+    <button class="content-button" (click)="updateVisible(9)">
+      <mat-icon>contact_mail</mat-icon>
+      Fazer login
+    </button>
+
+    <button class="content-button" (click)="updateVisible(11)">
+      <mat-icon>key</mat-icon>
+      Recuperar senha
+    </button>
+  </div>
+</div>

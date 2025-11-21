@@ -18,6 +18,21 @@
           "video[playsinline]"
         ]
       }
-    ]
+    ],
+    "compat-api/css": [
+      "default",
+      {
+        "ignore": [
+          "-moz-appearance"
+        ]
+      }
+    ],
+    "axe/text-alternatives": [
+      "default",
+      {
+        "image-alt": "off"
+      }
+    ],
+    "meta-viewport": "off"
   }
 }

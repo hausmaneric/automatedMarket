@@ -13,9 +13,15 @@ export let form = new FormGroup({
   password: new FormControl(''),
   confirmPassword: new FormControl(''),
   codeAccess: new FormControl(''),
-  image: new FormControl('')
+  image: new FormControl(''),
+  type: new FormControl(0),
+  update: new FormControl(0),
 });
 
+export let Img: string = '';
+export let Term: string = '';
+export let Company: string = '';
+export let Trade: string = '';
 export let Token: string = '';
 
 @Injectable({
@@ -25,7 +31,7 @@ export class MainService {
   constructor(private apiService: ApiService) {}
 
   async getCpf(payload: any) {
-    return await this.apiService.request(HttpMethod.POST,`/crm/cpf/${this.getToken()}`,payload,'CPF Consultation');
+    return await this.apiService.request(HttpMethod.POST,`/crm/cpfauto/${this.getToken()}`,payload,'CPF Consultation');
   }
 
   async customerSendEmail(payload: any) {
@@ -33,11 +39,15 @@ export class MainService {
   }
 
   async customerAccessValidity(payload: any) {
-    return await this.apiService.request(HttpMethod.POST,`/crm/customeraccessvalidity/${this.getToken()}`,payload,'Validity Code');
+    return await this.apiService.request(HttpMethod.POST,`/crm/customeraccessvalidate/${this.getToken()}`,payload,'Validity Code');
   }
 
   async customerAccessRegister(payload: any) {
     return await this.apiService.request(HttpMethod.POST,`/crm/customeraccessregister/${this.getToken()}`,payload,'Register Customer');
+  }
+
+  async customerAccessUpdate(payload: any) {
+    return await this.apiService.request(HttpMethod.POST,`/crm/customeraccessupdate/${this.getToken()}`,payload,'Update Customer');
   }
 
   async customerAccessPassword(payload: any) {
@@ -57,7 +67,15 @@ export class MainService {
   }
 
   async customerAccessActive(payload: any) {
-    return await this.apiService.request(HttpMethod.POST,`/crm/customeraccessactive/${this.getToken()}`,payload,'Customer Active');
+    return await this.apiService.request(HttpMethod.POST,`/crm/customeraccessactivate/${this.getToken()}`,payload,'Customer Active');
+  }
+
+  async customerAccessRecover(payload: any) {
+    return await this.apiService.request(HttpMethod.POST,`/crm/customeraccessrecover/${this.getToken()}`,payload,'Recover Client');
+  }
+
+  async customerAccessAppConfig() {
+    return await this.apiService.request(HttpMethod.GET,`/crm/customeraccessappconfig/${this.getToken()}`,'Customer Config');
   }
 
   setFormValue(field: string, value: any) {
@@ -80,7 +98,9 @@ export class MainService {
       // apartment: '',
       password: '',
       confirmPassword: '',
-      image: ''
+      image: '',
+      type: 0,
+      update: 0,
     });
   }
 
@@ -98,5 +118,37 @@ export class MainService {
 
   saveToken(token: string): void {
     Token = token;
+  }
+
+  getImg() {
+    return Img;
+  }
+
+  saveImg(img: string): void {
+    Img = img;
+  }
+
+  getTerm() {
+    return Term;
+  }
+
+  saveTerm(term: string): void {
+    Term = term;
+  }
+
+  getCompany() {
+    return Company;
+  }
+
+  saveCompany(company: string): void {
+    Company = company;
+  }
+
+  getTrade() {
+    return Trade;
+  }
+
+  saveTrade(trade: string): void {
+    Trade = trade;
   }
 }
