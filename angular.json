@@ -3,7 +3,7 @@
   "version": 1,
   "newProjectRoot": "projects",
   "projects": {
-    "automated_market": {
+    "next_price": {
       "projectType": "application",
       "schematics": {
         "@schematics/angular:component": {
@@ -34,7 +34,6 @@
           },
           "configurations": {
             "production": {
-              "baseHref": "/customerfaceid/",
               "budgets": [
                 {
                   "type": "initial",
