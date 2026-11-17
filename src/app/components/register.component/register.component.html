@@ -54,6 +54,7 @@
             <div class="cal-title">{{ monthsPt[calMonth] }} {{ calYear }}</div>
             <button class="cal-arrow" type="button" (click)="nextMonth()"><mat-icon>chevron_right</mat-icon></button>
           </div>
+
           <div class="cal-grid">
             <div class="cal-weekday" *ngFor="let w of weekdaysPt">{{ w }}</div>
             <ng-container *ngFor="let week of weeks">
@@ -109,6 +110,7 @@
   </form>
 </div>
 
+<!-- 🔥 Dialog corrigido e centralizado -->
 <div class="dialog-overlay" *ngIf="showDialog" (click)="closeDialog()">
   <div class="dialog" (click)="$event.stopPropagation()">
     <pre>{{ dialogMessage }}</pre>

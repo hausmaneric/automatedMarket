@@ -355,7 +355,7 @@ export class FaceComponent implements AfterViewInit, OnDestroy {
     croppedCtx.restore();
 
     const imageDataUrl = croppedCanvas.toDataURL('image/jpeg', 0.9);
-
+    console.log(imageDataUrl)
     this.zone.run(() => {
       this.form.get('image')!.setValue(imageDataUrl);
     });
@@ -394,15 +394,9 @@ export class FaceComponent implements AfterViewInit, OnDestroy {
 
     this.zone.run(() => (this.isLoading = true));
     this.mainService.setFormValue('image', imageFile);
-    const response: any = await this.mainService.customerAccessFace(this.mainService.getFormValues());
     this.zone.run(() => {
       this.isLoading = false;
-      if (response.status) {
-        this.updateVisible(6);
-      } else {
-        this.dialogMessage = response.message;
-        this.showDialog = true;
-      }
+      this.updateVisible(6);
     });
   }
 

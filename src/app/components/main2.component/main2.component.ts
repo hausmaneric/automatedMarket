@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, Component, EventEmitter, Output } from '@angular/core';
+import { ChangeDetectorRef, Component, EventEmitter, NgZone, Output } from '@angular/core';
 import { MatIconModule } from '@angular/material/icon';
 import { MainService } from '../../services/main.service';
 
@@ -15,7 +15,7 @@ export class Main2Component {
   img: string = '';
 
   @Output() visibleChange = new EventEmitter<number>();
-  constructor(private mainService: MainService, private cdr: ChangeDetectorRef) {}
+  constructor(private mainService: MainService, private cdr: ChangeDetectorRef, private ngZone: NgZone) {}
 
   ngOnInit(): void {
     const company = this.mainService.getCompany();
@@ -30,7 +30,17 @@ export class Main2Component {
     if(img != ''){
       this.img = img;
     }
+    history.pushState(null, '', location.href);
+
+    // 🔹 Captura o botão voltar (mobile + desktop)
+    window.addEventListener('popstate', this.onBrowserBack);
   }
+
+  onBrowserBack = () => {
+    this.ngZone.run(() => {
+      this.updateVisible(1); // 🔥 faz exatamente o mesmo que o botão back
+    });
+  };
 
   ngAfterViewInit(): void {
 

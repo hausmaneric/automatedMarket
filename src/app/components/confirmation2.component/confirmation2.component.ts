@@ -26,6 +26,9 @@ export class Confirmation2Component {
   showDialog = false;
   isLoading = false;
   email = '';
+  phone = '';
+  _validate = 0;
+
 
   constructor(
     private renderer: Renderer2,
@@ -35,7 +38,9 @@ export class Confirmation2Component {
 
   ngOnInit(): void {
     if (this.form.get('code')!.value) this.focused['code'] = true;
-    this.email = this.mainService.getFormValue('email');
+    this._validate = this.mainService.getValidate();
+    this.email     = this.mainService.getFormValue('email');
+    this.phone     = this.mainService.getFormValue('phone');
   }
 
   onFocus(name: string) {
@@ -70,9 +75,8 @@ export class Confirmation2Component {
     this.cdr.detectChanges();
 
     try {
-      const response: any = await this.mainService.customerAccessValidity(
-        this.mainService.getFormValues()
-      );
+      const response: any = await this.mainService.customeraccessregistervalidateaccount(this.mainService.getFormValues());
+      console.log(response)
 
       this.isLoading = false;
       this.cdr.detectChanges();

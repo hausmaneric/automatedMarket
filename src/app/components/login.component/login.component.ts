@@ -40,8 +40,17 @@ export class LoginComponent {
 
   ngOnInit(): void {
     if (this.form.get('cpf')!.value) this.focused['cpf'] = true;
+    history.pushState(null, '', location.href);
+
+    // 🔹 Captura o botão voltar (mobile + desktop)
+    window.addEventListener('popstate', this.onBrowserBack);
   }
 
+  onBrowserBack = () => {
+    this.ngZone.run(() => {
+      this.updateVisible(1); // 🔥 faz exatamente o mesmo que o botão back
+    });
+  };
   onFocus(name: string) {
     this.focused[name] = true;
   }
@@ -96,6 +105,7 @@ export class LoginComponent {
       this.mainService.setFormValue('type', 1);
 
       const response: any = await this.mainService.customerAccessLogin(this.mainService.getFormValues());
+      console.log(response)
       this.isLoading = false;
       this.cdr.detectChanges();
 

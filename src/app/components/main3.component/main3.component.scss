@@ -29,13 +29,6 @@
     color: var(--color-main) !important;
   }
 
-  .content-text {
-    text-align: center;
-    margin: 15px 0;
-    max-width: 260px;
-    font-size: var(--size-16);
-  }
-
   .content-buttons {
     display: flex;
     flex-direction: column;
@@ -59,24 +52,20 @@
 
     background-color: var(--primary-color);
     color: var(--color);
-    transition: transform .12s ease, box-shadow .12s ease;
-
-    mat-icon {
-      font-size: 20px;
-      width: 20px;
-      height: 20px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
+    transition: transform .12s ease;
 
     &:hover {
       transform: translateY(-2px);
     }
+
+    &.delete {
+      background: #e53935;
+      color: white;
+    }
   }
 }
 
-
+/* DIALOG GERAL (CONFIRMAÇÃO E MENSAGEM) */
 .dialog-overlay {
   position: fixed;
   top: 0;
@@ -87,7 +76,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 999;
+  z-index: 2000;
 }
 
 .dialog {
@@ -98,6 +87,15 @@
   max-width: 320px;
   text-align: center;
   box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+
+  pre {
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    margin: 0;
+    color: var(--input-color);
+    font-weight: 400;
+    font-size: var(--size-16);
+  }
 }
 
 .dialog-title {
@@ -109,7 +107,6 @@
 
 .dialog-buttons {
   display: flex;
-  // justify-content: space-around;
   justify-content: center;
   gap: 10px !important;
 }
@@ -122,18 +119,18 @@
   font-weight: 600;
   font-size: var(--size-16);
   transition: 0.3s ease;
-}
 
-.dialog-button.yes {
-  background-color: var(--primary-color);
-  color: var(--color-main);
-}
+  &.yes {
+    background-color: var(--primary-color);
+    color: var(--color-main);
+  }
 
-.dialog-button.no {
-  background-color: #ccc;
-  color: #333;
-}
+  &.no {
+    background-color: #ccc;
+    color: #333;
+  }
 
-.dialog-button:hover {
-  opacity: 0.9;
+  &:hover {
+    opacity: 0.9;
+  }
 }

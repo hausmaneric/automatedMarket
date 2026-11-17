@@ -34,6 +34,7 @@
           },
           "configurations": {
             "production": {
+              "baseHref": "/customerfaceid/",
               "budgets": [
                 {
                   "type": "initial",
@@ -66,7 +67,7 @@
               "buildTarget": "automated_market:build:development"
             }
           },
-          "defaultConfiguration": "development"
+          "defaultConfiguration": "production"
         },
         "extract-i18n": {
           "builder": "@angular/build:extract-i18n"

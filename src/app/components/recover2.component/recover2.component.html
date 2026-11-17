@@ -16,10 +16,7 @@
       <label class="password-label">Crie a sua senha (6 números)</label>
       <div class="input-wrapper password" [class.focused]="focused['password'] || form.get('password')?.value">
         <label>Senha</label>
-        <input maxlength="6" [type]="showSenha ? 'text' : 'password'" inputmode="numeric" pattern="[0-9]*"
-               formControlName="password"
-               autocomplete="new-password"
-               (focus)="onFocus('password')" (blur)="onBlur('password')" />
+        <input maxlength="6" [type]="showSenha ? 'text' : 'password'" inputmode="numeric" pattern="[0-9]*" formControlName="password"autocomplete="new-password"(focus)="onFocus('password')" (blur)="onBlur('password')" />
         <button type="button" class="icon-btn" (click)="toggleSenha()">
           <mat-icon>{{ showSenha ? 'visibility_off' : 'visibility' }}</mat-icon>
         </button>

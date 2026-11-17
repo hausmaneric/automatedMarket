@@ -1,49 +1,72 @@
+/* Container geral */
 .content {
+  height: 100vh;
+  width: 100%;
+  background-color: var(--background-color);
+  position: relative;
+
   display: flex;
   flex-direction: column;
   align-items: center;
-  height: 100vh;
-  background-color: var(--background-color);
-  padding-top: 28px !important;
-  box-sizing: border-box;
-  position: relative;
 }
 
+/* Título */
 .content-title {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  margin: 0 auto;
+  max-width: 380px;
+
+  text-align: center;
+  padding: 16px 0;
+  background: var(--background-color);
   font-size: var(--size-18);
   font-weight: 600;
-  margin-bottom: 10px;
-  text-align: center;
+  z-index: 10;
 }
 
-/* 🔹 Agora o texto ocupa todo o espaço restante, respeitando o botão */
+/* Texto */
 .content-text {
-  flex: 1;
+  position: absolute;
+  top: 60px;
+  bottom: 80px;
   width: 100%;
   max-width: 380px;
+
+  left: 0;
+  right: 0;
+  margin: 0 auto;
+
   overflow-y: auto;
-  box-sizing: border-box;
-  padding: 0 0 90px 0; /* reserva espaço pro botão fixo */
-  scroll-behavior: smooth;
+  overflow-x: hidden;
+  padding: 10px 4px;
 }
 
 .term-text {
   white-space: pre-wrap;
-  word-wrap: break-word;
-  font-size: var(--size-16);
+  word-break: break-word;
   color: var(--color);
+  font-size: var(--size-16);
   margin: 0;
 }
 
-/* 🔹 O botão agora usa position: sticky para acompanhar o scroll até o limite inferior */
+/* Botão fixo */
 .content-bottom {
-  position: sticky;
+  position: fixed;
   bottom: 0;
-  width: 100%;
+
+  left: 0;
+  right: 0;
+  margin: 0 auto;
+  max-width: 380px;
+
+  background: var(--background-color);
+  padding: 18px 0;
   display: flex;
   justify-content: center;
-  padding: 20px 0;
-  background: linear-gradient(to top, var(--background-color) 85%, transparent);
+  z-index: 10;
 }
 
 .content-button {
@@ -52,14 +75,16 @@
   padding: 10px 18px;
   border-radius: 18px;
   cursor: pointer;
+
   display: flex;
   align-items: center;
   gap: 8px;
+
   font-weight: 600;
   font-size: var(--size-16);
 }
 
-/* 🔹 Dialog */
+/* Dialog */
 .dialog-overlay {
   position: fixed;
   top: 0; left: 0;
@@ -83,10 +108,8 @@
 
   pre {
     white-space: pre-wrap;
-    word-wrap: break-word;
     margin: 0;
     color: var(--input-color);
-    font-weight: 400;
   }
 
   button {

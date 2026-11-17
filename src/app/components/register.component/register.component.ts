@@ -347,61 +347,33 @@ export class RegisterComponent implements OnInit, AfterViewInit, OnChanges {
 
     if (errors.length) this.showDialogMessage('Erros:\n' + errors.join('\n'));
     else {
-      if(this.mainService.getFormValue('update') !== 0){
-        this.mainService.setFormValue('name', this.form.get('name')!.value);
-        this.mainService.setFormValue('email', this.form.get('email')!.value);
-        this.mainService.setFormValue('phone', this.form.get('phone')!.value);
-        const birthDateValue = this.form.get('birthDate')!.value; // ex: "30062001"
+      this.mainService.setFormValue('name', this.form.get('name')!.value);
+      this.mainService.setFormValue('email', this.form.get('email')!.value);
+      this.mainService.setFormValue('phone', this.form.get('phone')!.value);
+      const birthDateValue = this.form.get('birthDate')!.value;
 
-        if (birthDateValue && birthDateValue.length === 8) {
-          const day = birthDateValue.substring(0, 2);
-          const month = birthDateValue.substring(2, 4);
-          const year = birthDateValue.substring(4, 8);
-          const formattedDate = `${year}-${month}-${day}T00:00:00`;
+      if (birthDateValue && birthDateValue.length === 8) {
+        const day = birthDateValue.substring(0, 2);
+        const month = birthDateValue.substring(2, 4);
+        const year = birthDateValue.substring(4, 8);
+        const formattedDate = `${year}-${month}-${day}T00:00:00`;
 
-          this.mainService.setFormValue('birthDate', formattedDate);
-        }
-        this.mainService.setFormValue('password', this.form.get('password')!.value);
+        this.mainService.setFormValue('birthDate', formattedDate);
+      } else if (birthDateValue && /^\d{4}-\d{2}-\d{2}$/.test(birthDateValue)) {
+        this.mainService.setFormValue('birthDate', `${birthDateValue}T00:00:00`);
+      }
+      this.mainService.setFormValue('password', this.form.get('password')!.value);
 
-        this.isLoading = true;
+      this.isLoading = true;
 
-        const response: any = await this.mainService.customerAccessUpdate(this.mainService.getFormValuesList());
-        this.isLoading = false;
-        this.cdr.detectChanges();this.cdr.detectChanges();
-
-        if (response.status){
-          this.mainService.setFormValue('code', response.data[0].code);
-          this.updateVisible(4);
-        } else {
-          this.showDialogMessage(response.message);
-        }
-      }else{
-        this.mainService.setFormValue('name', this.form.get('name')!.value);
-        this.mainService.setFormValue('email', this.form.get('email')!.value);
-        this.mainService.setFormValue('phone', this.form.get('phone')!.value);
-        const birthDateValue = this.form.get('birthDate')!.value; // ex: "30062001"
-
-        if (birthDateValue && birthDateValue.length === 8) {
-          const day = birthDateValue.substring(0, 2);
-          const month = birthDateValue.substring(2, 4);
-          const year = birthDateValue.substring(4, 8);
-          const formattedDate = `${year}-${month}-${day}T00:00:00`;
-
-          this.mainService.setFormValue('birthDate', formattedDate);
-        }
-        this.mainService.setFormValue('password', this.form.get('password')!.value);
-
-        this.isLoading = true;
-
-        const response: any = await this.mainService.customerAccessRegister(this.mainService.getFormValuesList());
-        this.isLoading = false;
-        this.cdr.detectChanges();this.cdr.detectChanges();
-        if (response.status){
-          this.mainService.setFormValue('code', response.data[0].code);
-          this.updateVisible(4);
-        } else {
-          this.showDialogMessage(response.message);
-        }
+      const response: any = await this.mainService.customerAccessRegister(this.mainService.getFormValuesList());
+      this.isLoading = false;
+      this.cdr.detectChanges();this.cdr.detectChanges();
+      if (response.status){
+        this.mainService.setFormValue('code', response.data[0].code);
+        this.updateVisible(4);
+      } else {
+        this.showDialogMessage(response.message);
       }
     }
   }
@@ -418,8 +390,17 @@ export class RegisterComponent implements OnInit, AfterViewInit, OnChanges {
     return `${y}-${m}-${day}`;
   }
 
-  showDialogMessage(msg: string) { this.dialogMessage = msg; this.showDialog = true; }
-  closeDialog() { this.showDialog = false; this.cdr.detectChanges(); }
+  showDialogMessage(msg: string) {
+    this.dialogMessage = msg;
+    this.showDialog = true;
+    this.cdr.detectChanges();
+    this.cdr.markForCheck();
+  }
+  closeDialog() {
+    this.showDialog = false;
+    this.cdr.detectChanges();
+    this.cdr.markForCheck();
+  }
 
   updateVisible(newValue: number) { this.visibleChange.emit(newValue); }
 

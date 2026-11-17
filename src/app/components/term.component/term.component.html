@@ -3,19 +3,21 @@
 }
 
 <div class="content">
-  <div class="content-title">Termos de Uso</div>
 
-  <!-- Texto com scroll -->
+  <div class="content-title">
+    Termos de Uso
+  </div>
+
   <div class="content-text">
     <pre class="term-text">{{ term }}</pre>
   </div>
 
-  <!-- Botão Avançar -->
   <div class="content-bottom">
     <button class="content-button" (click)="validateCode()" [disabled]="isLoading">
       <mat-icon>send</mat-icon> Concordar e Concluir
     </button>
   </div>
+
 </div>
 
 <!-- Dialog -->

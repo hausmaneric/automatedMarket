@@ -18,6 +18,10 @@ import { LoginComponent } from "./components/login.component/login.component";
 import { RecoverComponent } from "./components/recover.component/recover.component";
 import { Confirmation2Component } from "./components/confirmation2.component/confirmation2.component";
 import { Recover2Component } from "./components/recover2.component/recover2.component";
+import { Face2Component } from "./components/face2.component/face2.component";
+import { Finish2Component } from "./components/finish2.component/finish2.component";
+import { Finish3Component } from "./components/finish3.component/finish3.component";
+import { Finish4Component } from "./components/finish4.component/finish4.component";
 
 @Component({
   selector: 'app-root',
@@ -35,7 +39,11 @@ import { Recover2Component } from "./components/recover2.component/recover2.comp
     LoginComponent,
     RecoverComponent,
     Confirmation2Component,
-    Recover2Component
+    Recover2Component,
+    Face2Component,
+    Finish2Component,
+    Finish3Component,
+    Finish4Component
 ],
   providers:[MainService, ApiService],
   templateUrl: './app.html',
@@ -65,7 +73,7 @@ export class App {
 
       this.mainService.saveToken(token);
       const response: any = await this.mainService.customerAccessAppConfig();
-
+      console.log(response)
       if (response.status) {
         // Decodifica o CSS Base64
         const decodedCss = this.base64ToString(response.data.css);
@@ -79,12 +87,12 @@ export class App {
         for (const [key, value] of Object.entries(cssVars)) {
           document.documentElement.style.setProperty(key, value);
         }
-
         const decodedTerm = this.base64ToString(response.data.terms);
         this.mainService.saveTerm(decodedTerm);
         this.mainService.saveImg(response.data.logo);
-        this.mainService.saveCompany(response.data.company);
-        this.mainService.saveTrade(response.data.trade);
+        this.mainService.saveCompany(response.data.compayName);
+        this.mainService.saveTrade(response.data.compayTrade);
+        this.mainService.saveValidate(response.data.validateMode);
       }
 
       this.error = false;

@@ -1,6 +1,6 @@
 <div class="content">
   <div class="content-logo">
-    @if(img){
+    @if(img != ''){
       <img [src]="img" />
     }
   </div>
@@ -24,5 +24,13 @@
       <mat-icon>person</mat-icon>
       Já sou cadastrado
     </button>
+
+    <div class="bottom-center">
+      <img src="assets/images/logomarca.png" />
+    </div>
+
+    <div class="bottom-right">
+      {{_version}}
+    </div>
   </div>
 </div>

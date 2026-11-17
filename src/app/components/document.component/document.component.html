@@ -7,7 +7,7 @@
       <mat-icon>arrow_back</mat-icon>
     </button>
 
-    <div class="content-title">Informe o seu CPF</div>
+    <div class="content-title">Informe o seu CPF e Data de Nascimento</div>
   </div>
   <div class="content-image">
     <img src="assets/images/smiling.png" alt="imagem" />
@@ -17,17 +17,45 @@
     <div class="content-input">
       <div class="input-wrapper" [class.focused]="focused['cpf'] || form.get('cpf')?.value">
         <label>CPF</label>
-        <input
-          #cpfInput
-          type="text"
-          inputmode="numeric"
-          pattern="[0-9]*"
-          autocomplete="off"
-          formControlName="cpf"
-          (input)="onCpfInput($event)"
-          (focus)="onFocus('cpf')"
-          (blur)="onBlur('cpf')"
-        />
+        <input #cpfInput type="text" inputmode="numeric" pattern="[0-9]*" autocomplete="off" formControlName="cpf" (input)="onCpfInput($event)" (focus)="onFocus('cpf')" (blur)="onBlur('cpf')" />
+      </div>
+    </div>
+
+    <div class="content-input">
+      <div #dateWrapper class="input-wrapper date-wrapper" [class.focused]="focused['birth_date'] || form.get('birth_date')?.value">
+        <label>Data de Nascimento</label>
+        <input #dateInput type="text" [value]="dateDisplay"
+               (input)="onDateInput($event)" (click)="openCalendar()"
+               (focus)="onFocus('birth_date')" (blur)="onDateBlur()"
+               style="cursor:text" autocomplete="bday" />
+        <button type="button" class="icon-btn" aria-label="Abrir calendário"
+                (mousedown)="$event.preventDefault()" (click)="openCalendar()">
+          <mat-icon>calendar_month</mat-icon>
+        </button>
+
+        <div *ngIf="calendarOpen" #calendar class="calendar-popup"
+             (mousedown)="$event.preventDefault()"
+             (touchstart)="onTouchStart($event)" (touchend)="onTouchEnd($event)">
+          <div class="cal-header">
+            <button class="cal-arrow" type="button" (click)="prevMonth()"><mat-icon>chevron_left</mat-icon></button>
+            <div class="cal-title">{{ monthsPt[calMonth] }} {{ calYear }}</div>
+            <button class="cal-arrow" type="button" (click)="nextMonth()"><mat-icon>chevron_right</mat-icon></button>
+          </div>
+
+          <div class="cal-grid">
+            <div class="cal-weekday" *ngFor="let weekday of weekdaysPt">{{ weekday }}</div>
+            <ng-container *ngFor="let week of weeks">
+              <ng-container *ngFor="let cell of week">
+                <button type="button" class="cal-cell" [class.other]="!cell.currentMonth"
+                        [class.today]="isToday(cell.d)"
+                        [class.selected]="selectedDateObj() && cell.d && selectedDateObj()!.toDateString() === cell.d.toDateString()"
+                        (click)="cell.d && pickDate(cell.d)">
+                  <span>{{ cell.d ? cell.d.getDate() : '' }}</span>
+                </button>
+              </ng-container>
+            </ng-container>
+          </div>
+        </div>
       </div>
     </div>
   </form>

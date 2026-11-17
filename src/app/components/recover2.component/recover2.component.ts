@@ -113,11 +113,12 @@ export class Recover2Component {
       this.isLoading = true;
 
       const response: any = await this.mainService.customerAccessPassword(this.mainService.getFormValues());
+      console.log(response)
       this.isLoading = false;
       this.cdr.detectChanges();this.cdr.detectChanges();
 
       if (response.status){
-        this.updateVisible(7);
+        this.updateVisible(17);
       } else {
         this.showDialogMessage(response.message);
       }

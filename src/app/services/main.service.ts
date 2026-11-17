@@ -9,6 +9,7 @@ export let form = new FormGroup({
   phone: new FormControl(''),
   email: new FormControl(''),
   birthDate: new FormControl(''),
+  birth_date: new FormControl(''),
   // apartment: new FormControl(''),
   password: new FormControl(''),
   confirmPassword: new FormControl(''),
@@ -23,6 +24,7 @@ export let Term: string = '';
 export let Company: string = '';
 export let Trade: string = '';
 export let Token: string = '';
+export let Validate: number = 0;
 
 @Injectable({
   providedIn: 'root',
@@ -39,11 +41,19 @@ export class MainService {
   }
 
   async customerAccessValidity(payload: any) {
-    return await this.apiService.request(HttpMethod.POST,`/crm/customeraccessvalidate/${this.getToken()}`,payload,'Validity Code');
+    return await this.apiService.request(HttpMethod.POST,`/crm/customeraccessregistervalidate/${this.getToken()}`,payload,'Validity Code');
+  }
+
+  async customerAccessCheck(payload: any) {
+    return await this.apiService.request(HttpMethod.POST,`/crm/customeraccesscheckquery/${this.getToken()}`,payload,'Check Document');
   }
 
   async customerAccessRegister(payload: any) {
     return await this.apiService.request(HttpMethod.POST,`/crm/customeraccessregister/${this.getToken()}`,payload,'Register Customer');
+  }
+
+  async customerAccessRegisterFinish(payload: any) {
+    return await this.apiService.request(HttpMethod.POST,`/crm/customeraccessregisterfinish/${this.getToken()}`,payload,'Finish Register');
   }
 
   async customerAccessUpdate(payload: any) {
@@ -71,7 +81,11 @@ export class MainService {
   }
 
   async customerAccessRecover(payload: any) {
-    return await this.apiService.request(HttpMethod.POST,`/crm/customeraccessrecover/${this.getToken()}`,payload,'Recover Client');
+    return await this.apiService.request(HttpMethod.POST,`/crm/customeraccessconfirmaccount/${this.getToken()}`,payload,'Recover Client');
+  }
+
+  async customeraccessregistervalidateaccount(payload: any) {
+    return await this.apiService.request(HttpMethod.POST,`/crm/customeraccessregistervalidateaccount/${this.getToken()}`,payload,'Recover Client');
   }
 
   async customerAccessAppConfig() {
@@ -95,6 +109,7 @@ export class MainService {
       phone: '',
       email: '',
       birthDate: '',
+      birth_date: '',
       // apartment: '',
       password: '',
       confirmPassword: '',
@@ -105,11 +120,12 @@ export class MainService {
   }
 
   getFormValuesList() {
-    return [form.getRawValue()];
+    return [this.getFormValues()];
   }
 
-  getFormValues() {
-    return form.getRawValue();
+  getFormValues(includeBirthDateAlias = false) {
+    const { birth_date, ...values } = form.getRawValue();
+    return includeBirthDateAlias ? { ...values, birth_date } : values;
   }
 
   getToken() {
@@ -150,5 +166,13 @@ export class MainService {
 
   saveTrade(trade: string): void {
     Trade = trade;
+  }
+
+  getValidate() {
+    return Validate;
+  }
+
+  saveValidate(validate: number): void {
+    Validate = validate;
   }
 }

@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, Component, ElementRef, EventEmitter, OnInit, Output, Renderer2, ViewChild } from '@angular/core';
+import { ChangeDetectorRef, Component, ElementRef, EventEmitter, OnInit, Output, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormGroup, FormControl } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
@@ -27,7 +27,6 @@ export class TermComponent implements OnInit {
   term = '';
 
   constructor(
-    private renderer: Renderer2,
     private mainService: MainService,
     private cdr: ChangeDetectorRef
   ) {}
@@ -53,7 +52,8 @@ export class TermComponent implements OnInit {
   async validateCode() {
     const form = this.mainService.getFormValues();
     this.isLoading = true;
-    const response: any = await this.mainService.customerAccessActive(form);
+
+    const response: any = await this.mainService.customerAccessRegisterFinish(form);
     this.isLoading = false;
     this.cdr.detectChanges();
 
@@ -62,13 +62,15 @@ export class TermComponent implements OnInit {
       this.mainService.resetForm();
       this.cdr.detectChanges();
     } else {
-      this.showDialogMessage(response.message);
+      this.showDialogMessage(response.message);  // 🔥 Agora funciona sem segundo clique
     }
   }
 
   showDialogMessage(msg: string) {
     this.dialogMessage = msg;
     this.showDialog = true;
+
+    this.cdr.detectChanges(); // 🔥 SOLUÇÃO — força renderização imediata
   }
 
   closeDialog() {

@@ -41,7 +41,17 @@ export class RecoverComponent {
 
   ngOnInit(): void {
     if (this.form.get('cpf')!.value) this.focused['cpf'] = true;
+    history.pushState(null, '', location.href);
+
+    // 🔹 Captura o botão voltar (mobile + desktop)
+    window.addEventListener('popstate', this.onBrowserBack);
   }
+
+  onBrowserBack = () => {
+    this.ngZone.run(() => {
+      this.updateVisible(1); // 🔥 faz exatamente o mesmo que o botão back
+    });
+  };
 
   onFocus(name: string) {
     this.focused[name] = true;

@@ -1,4 +1,4 @@
-import { Component, ElementRef, ViewChild, ChangeDetectorRef, NgZone, EventEmitter, Output, } from '@angular/core';
+import { Component, ElementRef, ViewChild, ChangeDetectorRef, NgZone, EventEmitter, Output, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormGroup, FormControl } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
@@ -16,14 +16,25 @@ import { LoadingComponent } from '../loading/loading.component';
 })
 export class DocumentComponent {
   @ViewChild('cpfInput') cpfInputEl!: ElementRef;
+  @ViewChild('dateWrapper') dateWrapperEl!: ElementRef;
   @Output() visibleChange = new EventEmitter<number>();
   @Output() cpfValidated = new EventEmitter<{ nome: string; nascimento: string }>();
 
   form = new FormGroup({
     cpf: new FormControl(''),
+    birth_date: new FormControl(''),
   });
 
   focused: Record<string, boolean> = {};
+  calendarOpen = false;
+  calYear = new Date().getFullYear();
+  calMonth = new Date().getMonth();
+  weeks: Array<Array<{ d: Date | null; currentMonth: boolean }>> = [];
+  private touchStartX = 0;
+  private touchEndX = 0;
+  monthsPt = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+  weekdaysPt = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+  dateDisplay = '';
   dialogMessage = '';
   showDialog = false;
   isLoading = false;
@@ -37,7 +48,18 @@ export class DocumentComponent {
 
   ngOnInit(): void {
     if (this.form.get('cpf')!.value) this.focused['cpf'] = true;
+
+    history.pushState(null, '', location.href);
+
+    // 🔹 Captura o botão voltar (mobile + desktop)
+    window.addEventListener('popstate', this.onBrowserBack);
   }
+
+  onBrowserBack = () => {
+    this.ngZone.run(() => {
+      this.updateVisible(1); // 🔥 faz exatamente o mesmo que o botão back
+    });
+  };
 
   onFocus(name: string) {
     this.focused[name] = true;
@@ -46,6 +68,179 @@ export class DocumentComponent {
   onBlur(name: string) {
     const val = this.form.get(name)?.value;
     if (!val) this.focused[name] = false;
+  }
+
+  formatDisplayDate(value: string | null): string {
+    if (!value) return '';
+    let day: string, month: string, year: string;
+
+    if (value.includes('-')) {
+      const parts = value.split('-').map(n => parseInt(n, 10));
+      const d = new Date(parts[0], parts[1] - 1, parts[2]);
+      day = String(d.getDate()).padStart(2, '0');
+      month = String(d.getMonth() + 1).padStart(2, '0');
+      year = d.getFullYear().toString();
+    } else if (/^\d{8}$/.test(value)) {
+      day = value.substring(0, 2);
+      month = value.substring(2, 4);
+      year = value.substring(4, 8);
+    } else {
+      return value;
+    }
+    return `${day}/${month}/${year}`;
+  }
+
+  parseDDMMYYYY(value: string): Date | null {
+    const digits = (value || '').replace(/\D/g, '');
+    if (digits.length !== 8) return null;
+    const day = Number(digits.slice(0, 2));
+    const month = Number(digits.slice(2, 4)) - 1;
+    const year = Number(digits.slice(4, 8));
+    const d = new Date(year, month, day);
+    if (d.getFullYear() !== year || d.getMonth() !== month || d.getDate() !== day) return null;
+    return d;
+  }
+
+  onDateInput(ev: Event) {
+    const input = ev.target as HTMLInputElement;
+    const digits = (input.value || '').replace(/\D/g, '').slice(0, 8);
+    let formatted = '';
+    if (digits.length >= 5) formatted = `${digits.slice(0, 2)}/${digits.slice(2, 4)}/${digits.slice(4, 8)}`;
+    else if (digits.length >= 3) formatted = `${digits.slice(0, 2)}/${digits.slice(2, 4)}`;
+    else formatted = digits;
+    input.value = formatted;
+    this.dateDisplay = formatted;
+    const parsed = this.parseDDMMYYYY(formatted);
+    this.form.get('birth_date')!.setValue(parsed ? this.toISO(parsed) : '');
+    this.focused['birth_date'] = !!parsed;
+  }
+
+  onDateBlur() {
+    const d = this.parseDDMMYYYY(this.dateDisplay);
+    if (d) {
+      this.form.get('birth_date')!.setValue(this.toISO(d));
+      this.dateDisplay = this.formatDisplayDate(this.toISO(d));
+      this.focused['birth_date'] = true;
+    } else if (!this.dateDisplay) {
+      this.focused['birth_date'] = false;
+    }
+  }
+
+  openCalendar() {
+    if (this.calendarOpen) {
+      this.closeCalendar();
+      return;
+    }
+    this.calendarOpen = true;
+    const value = this.form.get('birth_date')!.value;
+    if (value) {
+      const parts = value.split('-').map(n => parseInt(n, 10));
+      if (parts.length === 3) {
+        this.calYear = parts[0];
+        this.calMonth = parts[1] - 1;
+      }
+    }
+    this.generateCalendar(this.calYear, this.calMonth);
+  }
+
+  closeCalendar() {
+    this.calendarOpen = false;
+  }
+
+  pickDate(date: Date) {
+    const localDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+    this.form.get('birth_date')!.setValue(this.toISO(localDate));
+    this.dateDisplay = this.formatDisplayDate(this.toISO(localDate));
+    this.focused['birth_date'] = true;
+    this.closeCalendar();
+  }
+
+  prevMonth() {
+    this.calMonth === 0 ? (this.calMonth = 11, this.calYear--) : this.calMonth--;
+    this.generateCalendar(this.calYear, this.calMonth);
+  }
+
+  nextMonth() {
+    this.calMonth === 11 ? (this.calMonth = 0, this.calYear++) : this.calMonth++;
+    this.generateCalendar(this.calYear, this.calMonth);
+  }
+
+  generateCalendar(year: number, month: number) {
+    const first = new Date(year, month, 1);
+    const startDay = first.getDay();
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    const prevMonthDays = new Date(year, month, 0).getDate();
+    const cells: Array<{ d: Date | null; currentMonth: boolean }> = [];
+
+    for (let i = startDay - 1; i >= 0; i--) {
+      cells.push({ d: new Date(year, month - 1, prevMonthDays - i), currentMonth: false });
+    }
+    for (let day = 1; day <= daysInMonth; day++) {
+      cells.push({ d: new Date(year, month, day), currentMonth: true });
+    }
+    let nextDay = 1;
+    while (cells.length % 7 !== 0) {
+      cells.push({ d: new Date(year, month + 1, nextDay++), currentMonth: false });
+    }
+
+    this.weeks = [];
+    for (let i = 0; i < cells.length; i += 7) {
+      this.weeks.push(cells.slice(i, i + 7));
+    }
+  }
+
+  isToday(date: Date | null) {
+    if (!date) return false;
+    const today = new Date();
+    return date.getFullYear() === today.getFullYear() &&
+      date.getMonth() === today.getMonth() &&
+      date.getDate() === today.getDate();
+  }
+
+  selectedDateObj(): Date | null {
+    const value = this.form.get('birth_date')!.value;
+    if (!value) return null;
+    const parts = value.split('-').map(n => parseInt(n, 10));
+    if (parts.length !== 3) return null;
+    return new Date(parts[0], parts[1] - 1, parts[2]);
+  }
+
+  @HostListener('document:click', ['$event'])
+  closeCalendarOnOutsideClick(ev: MouseEvent) {
+    if (!this.calendarOpen) return;
+    const target = ev.target as Node;
+    if (this.dateWrapperEl?.nativeElement.contains(target)) return;
+    this.closeCalendar();
+  }
+
+  onTouchStart(ev: TouchEvent) {
+    this.touchStartX = ev.touches[0].clientX;
+  }
+
+  onTouchEnd(ev: TouchEvent) {
+    this.touchEndX = ev.changedTouches[0].clientX;
+    const dx = this.touchEndX - this.touchStartX;
+    if (Math.abs(dx) > 40) dx < 0 ? this.nextMonth() : this.prevMonth();
+  }
+
+  @HostListener('document:keydown', ['$event'])
+  handleKeydown(event: KeyboardEvent) {
+    if (!this.calendarOpen) return;
+    if (event.key === 'ArrowLeft') {
+      event.preventDefault();
+      this.prevMonth();
+    }
+    if (event.key === 'ArrowRight') {
+      event.preventDefault();
+      this.nextMonth();
+    }
+  }
+
+  private toISO(date: Date): string {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
   }
 
   // Aplica máscara e impede caracteres não numéricos
@@ -67,6 +262,7 @@ export class DocumentComponent {
   }
 
   async validateCpf() {
+    this.mainService.resetForm();
     // 🔹 Remove foco e fecha teclado no mobile
     this.blurInput();
 
@@ -78,15 +274,22 @@ export class DocumentComponent {
       return;
     }
 
+    const birthDate = this.form.get('birth_date')!.value;
+    if (!birthDate) {
+      this.showDialogMessage('Por favor, insira uma data de nascimento válida.');
+      return;
+    }
+
     this.isLoading = true;
     this.cdr.detectChanges();
 
     try {
       this.mainService.setFormValue('cpf', cpf);
+      this.mainService.setFormValue('birthDate', birthDate);
+      this.mainService.setFormValue('birth_date', this.dateDisplay.replace(/\D/g, ''));
       this.mainService.setFormValue('type', 1);
-
-      const response: any = await this.mainService.customerAccessValidity(this.mainService.getFormValues());
-
+      const payload = this.mainService.getFormValues(true);
+      const response: any = await this.mainService.customerAccessCheck(payload);
       this.isLoading = false;
       this.cdr.detectChanges();
 
@@ -123,15 +326,11 @@ export class DocumentComponent {
         this.mainService.setFormValue('phone', data.tel1ddd + data.tel1);
       }
 
-      if (data.datanascimento) {
-        this.mainService.setFormValue('birthDate', data.datanascimento);
-      }
-
       this.cdr.detectChanges();
 
       this.cpfValidated.emit({
         nome: data.nome,
-        nascimento: data.datanascimento || data.nascimento,
+        nascimento: birthDate,
       });
 
       this.updateVisible(3);

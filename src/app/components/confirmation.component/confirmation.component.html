@@ -3,7 +3,11 @@
 }
 <div class="content">
   <div class="content-title">Informe o código enviado para</div>
-  <div class="content-subtitle">{{ email }}</div>
+  @if(_validate == 2){
+    <div class="content-subtitle">{{ phone }}</div>
+  }@else {
+    <div class="content-subtitle">{{ email }}</div>
+  }
 
   <form class="content-form" [formGroup]="form" (submit)="$event.preventDefault()">
 

@@ -1,3 +1,7 @@
+@if (isLoading) {
+  <app-loading></app-loading>
+}
+
 <div class="content">
   <div class="content-logo">
     @if (img) {
@@ -10,12 +14,12 @@
   </div>
 
   <div class="content-buttons">
-    <button class="content-button" (click)="updateVisible(5)">
+    <button class="content-button" (click)="updateVisible(14)">
       <mat-icon>face</mat-icon>
       Reenviar facial
     </button>
 
-    <button class="content-button delete" (click)="confirmDelete()">
+    <button class="content-button" (click)="confirmDelete()">
       <mat-icon>delete</mat-icon>
       Apagar conta
     </button>
@@ -31,5 +35,13 @@
       <button class="dialog-button yes" (click)="deleteAccount()">Sim</button>
       <button class="dialog-button no" (click)="closeDialog()">Não</button>
     </div>
+  </div>
+</div>
+
+<!-- Dialog de mensagem -->
+<div class="dialog-overlay" *ngIf="showMessageDialog" (click)="closeMessageDialog()">
+  <div class="dialog" (click)="$event.stopPropagation()">
+    <pre>{{ dialogMessage }}</pre>
+    <button (click)="closeMessageDialog()">Fechar</button>
   </div>
 </div>
